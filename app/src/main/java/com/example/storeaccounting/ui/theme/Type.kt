@@ -8,15 +8,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.storeaccounting.R
 
-val persian_font_black = Font(R.font.vazirmatn_black)
-val persian_font_bold= Font(R.font.vazirmatn_bold)
-val persian_font_light = Font(R.font.vazirmatn_light)
-val persian_font_extra_bold = Font(R.font.vazirmatn_extra_bold)
-val persian_font_medium = Font(R.font.vazirmatn_medium)
-val persian_font_extra_light = Font(R.font.vazirmatn_extra_light)
-val persian_font_regular = Font(R.font.vazirmatn_regular)
-val persian_font_semi_bold = Font(R.font.vazirmatn_semi_bold)
-val persian_font_thin = Font(R.font.vazirmatn_thin)
+val persian_font_black = FontFamily(Font(R.font.vazirmatn_black))
+val persian_font_bold= FontFamily(Font(R.font.vazirmatn_bold))
+val persian_font_light = FontFamily(Font(R.font.vazirmatn_light))
+val persian_font_extra_bold = FontFamily(Font(R.font.vazirmatn_extra_bold))
+val persian_font_medium = FontFamily(Font(R.font.vazirmatn_medium))
+val persian_font_extra_light = FontFamily(Font(R.font.vazirmatn_extra_light))
+val persian_font_regular = FontFamily(Font(R.font.vazirmatn_regular))
+val persian_font_semi_bold = FontFamily(Font(R.font.vazirmatn_semi_bold))
+val persian_font_thin = FontFamily(Font(R.font.vazirmatn_thin))
 
 
 // Set of Material typography styles to start with

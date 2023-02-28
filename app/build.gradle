@@ -89,4 +89,7 @@ dependencies {
 
     // Kotlin Extensions and Coroutine support for Room
     implementation "androidx.room:room-ktx:2.5.0"
+
+    // Persian date convertor
+    implementation 'com.github.samanzamani:PersianDate:1.6.1'
 }

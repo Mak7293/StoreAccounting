@@ -22,7 +22,7 @@ import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.view_model.MainViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class)
+
 @Composable
 fun Inventory(
     viewModel: MainViewModel = hiltViewModel(),
