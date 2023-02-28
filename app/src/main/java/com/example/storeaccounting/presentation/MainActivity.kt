@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.tween
@@ -47,6 +48,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.storeaccounting.domain.model.Transaction
+import com.example.storeaccounting.domain.util.TransactionState
 import com.example.storeaccounting.presentation.General.General
 import com.example.storeaccounting.presentation.component.BottomNavigation
 import com.example.storeaccounting.presentation.inventory.Inventory
@@ -54,11 +57,13 @@ import com.example.storeaccounting.presentation.sale.Sale
 import com.example.storeaccounting.presentation.setting.Setting
 import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
+import com.example.storeaccounting.presentation.view_model.Event
 import com.example.storeaccounting.presentation.view_model.MainViewModel
 import com.example.storeaccounting.ui.theme.StoreAccountingTheme
 import com.example.storeaccounting.ui.theme.persian_font_medium
 import com.example.storeaccounting.ui.theme.persian_font_regular
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import saman.zamani.persiandate.PersianDate
@@ -67,7 +72,7 @@ import java.util.*
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterialApi::class)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -82,9 +87,6 @@ class MainActivity : ComponentActivity() {
                 Log.d("today formatted", persianDate.toString())
                 Log.d("today formatted!!", persianDateFormatter.format(persianDate).toString())*/
 
-
-
-
                 val navController = rememberNavController()
                 Main(
                     navController = navController,
@@ -93,8 +95,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-
 }
 
 @Composable
@@ -119,7 +119,8 @@ fun SetStatusBarTheme(window : Window) {
 @Composable
 fun Main(
     navController: NavHostController,
-    viewModel: MainViewModel = hiltViewModel()
+    viewModel: MainViewModel = hiltViewModel(),
+    context: Context = LocalContext.current
 ) {
     val fabState = remember {
         mutableStateOf<String>("")
@@ -139,6 +140,26 @@ fun Main(
             sheetState.collapse()
         }
     }
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event  ->
+            when(event){
+                is  MainViewModel.UiEvent.ShowToast   ->   {
+                    Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
+
+                }
+                is  MainViewModel.UiEvent.SaveNote  ->  {
+                    scope.launch {
+                        if(sheetState.isCollapsed) {
+                            sheetState.expand()
+                        } else {
+                            sheetState.collapse()
+                        }
+                    }
+                }
+            }
+
+        }
+    }
     BottomSheetScaffold(
         scaffoldState = bottomSheetScaffoldState ,
         sheetContent = {
@@ -147,7 +168,7 @@ fun Main(
                     InventoryBottomSheetContent(
                         Modifier
                             .fillMaxWidth()
-                            .height(300.dp)
+                            .height(440.dp)
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
@@ -156,7 +177,7 @@ fun Main(
                                     )
                                 )
                             ),
-                        viewModel.getPersianDate()
+                        viewModel
                     ){
                         scope.launch {
                             if(sheetState.isCollapsed) {
@@ -259,9 +280,23 @@ fun Main(
 @Composable
 fun InventoryBottomSheetContent(
     modifier: Modifier = Modifier,
-    currentDate: PersianDate,
+    viewModel: MainViewModel,
     onClick:()  ->  Unit,
 ) {
+    val currentDate = PersianDateFormat("Y/m/d")
+        .format(viewModel.getPersianDate()).toString()
+    var title by remember {
+        mutableStateOf("")
+    }
+    var number by remember {
+        mutableStateOf("")
+    }
+    var sellPrice by remember {
+        mutableStateOf("")
+    }
+    var buyPrice by remember {
+        mutableStateOf("")
+    }
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -285,12 +320,35 @@ fun InventoryBottomSheetContent(
                 hint = "نام کالا ...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+            ){
+                title = it
+            }
             EditText(
                 hint = "تعداد کالا ...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+            ){
+
+                number = it
+            }
+            EditText(
+                hint = "قیمت خرید ...",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+            ){
+                buyPrice = it
+            }
+            EditText(
+                hint = "قیمت فروش ...",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+            ){
+                sellPrice = it
+            }
             RightToLeftLayout {
                 Row(
                     modifier = Modifier
@@ -306,7 +364,7 @@ fun InventoryBottomSheetContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 5.dp),
-                        text = PersianDateFormat("Y/m/d").format(currentDate).toString(),
+                        text = currentDate ,
                         color = MaterialTheme.colors.primaryVariant,
                         fontFamily = persian_font_regular,
                         fontSize = 18.sp
@@ -340,7 +398,16 @@ fun InventoryBottomSheetContent(
                 Button(
                     modifier = Modifier.width(175.dp),
                     onClick = {
-                        onClick()
+                        val transaction = Transaction(
+                            date = currentDate,
+                            timeStamp = System.currentTimeMillis(),
+                            title = title,
+                            number = number,
+                            sellPrice = sellPrice,
+                            buyPrice = buyPrice,
+                            state = TransactionState.Inventory.state
+                        )
+                        viewModel.onEvent(Event.InsertInventory(transaction))
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF008506))
@@ -385,7 +452,8 @@ fun SaleBottomSheetContent(
 @Composable
 fun EditText(
     modifier: Modifier = Modifier,
-    hint: String = ""
+    hint: String = "",
+    onText:(String) -> Unit
 ){
     var text by remember {
         mutableStateOf("")
@@ -399,6 +467,7 @@ fun EditText(
                 value = text,
                 onValueChange = {
                     text = it
+                    onText(it)
                 },
                 maxLines = 1,
                 singleLine = true,
@@ -443,7 +512,6 @@ fun EditText(
             }
         }
     }
-
 }
 
 @Composable

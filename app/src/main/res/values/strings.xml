@@ -3,4 +3,17 @@
 
     <string name="blank_title_exception">نام کالا را وارد کنید.</string>
     <string name="blank_number_exception">تعداد کالا را وارد کنید.</string>
+    <string name="zero_number_exception">تعداد کالا نمیتواند صفر باشد.</string>
+    <string name="digit_number_exception">تعداد کالا تنها میتواند عدد باشد.</string>
+    <string name="negative_number_exception">تعداد کالا نمیتواند منفی باشد.</string>
+
+    <string name="blank_buy_price_exception">قیمت خرید کالا را وارد کنید.</string>
+    <string name="zero_buy_price_exception">قیمت خرید کالا نمیتواند صفر باشد.</string>
+    <string name="digit_buy_price_exception">قیمت خرید کالا تنها میتواند عدد باشد.</string>
+    <string name="negative_buy_price_exception">قیمت خرید کالا نمیتواند منفی باشد.</string>
+
+    <string name="blank_sell_price_exception">قیمت فروش کالا را وارد کنید.</string>
+    <string name="zero_sell_price_exception">قیمت فروش کالا نمیتواند صفر باشد.</string>
+    <string name="digit_sell_price_exception">قیمت فروش کالا تنها میتواند عدد باشد.</string>
+    <string name="negative_sell_price_exception">قیمت فروش کالا نمیتواند منفی باشد.</string>
 </resources>

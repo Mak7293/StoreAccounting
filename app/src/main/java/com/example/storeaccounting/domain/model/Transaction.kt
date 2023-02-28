@@ -10,6 +10,8 @@ data class Transaction(
     val date: String,
     val timeStamp: Long,
     val title: String,
-    val number: Int,
+    val number: String,
+    val sellPrice: String,
+    val buyPrice: String,
     val state: String
 )
