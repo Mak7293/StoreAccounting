@@ -3,8 +3,8 @@ package com.example.storeaccounting.domain.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "Inventory")
-data class Inventory(
+@Entity(tableName = "transaction_table")
+data class Transaction(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
     val date: String,
