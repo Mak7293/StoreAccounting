@@ -21,4 +21,9 @@ class TransactionRepositoryImp(private val dao: TransactionDao): TransactionRepo
     override fun fetchAllTransaction(): Flow<List<Transaction>> {
         return dao.fetchAllData()
     }
+
+    override fun fetchAllInventoryTransaction(): Flow<List<Transaction>> {
+        return dao.fetchAllInventoryTransaction()
+    }
+
 }

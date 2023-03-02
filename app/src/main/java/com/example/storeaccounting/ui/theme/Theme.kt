@@ -14,17 +14,19 @@ private val DarkColorPalette = darkColors(
     surface = Color.Yellow,
     background = custom_blue_2,
     onSurface = custom_blue_0,
-    secondaryVariant = custom_gray_4
+    secondaryVariant = custom_gray_4,
+    onPrimary = Color.Black
 )
 
 private val LightColorPalette = lightColors(
     primary = custom_blue_2,
     primaryVariant = Color.Black,
-    secondary = custom_blue_4,
+    secondary = custom_blue_5,
     surface = custom_blue_1,
     background = custom_blue_8,
     onSurface = custom_gray_4,
-    secondaryVariant = custom_gray_0
+    secondaryVariant = custom_gray_0,
+    onPrimary = Color.White
 
 
     /* Other default colors to override

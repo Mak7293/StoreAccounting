@@ -6,6 +6,8 @@ import com.example.storeaccounting.data.data_source.TransactionDatabase
 import com.example.storeaccounting.data.repository.TransactionRepositoryImp
 import com.example.storeaccounting.domain.repository.TransactionRepository
 import com.example.storeaccounting.domain.use_case.AddTransaction
+import com.example.storeaccounting.domain.use_case.DeleteTransaction
+import com.example.storeaccounting.domain.use_case.GetInventoryTransaction
 import com.example.storeaccounting.domain.use_case.TransactionUseCases
 import dagger.Module
 import dagger.Provides
@@ -38,6 +40,8 @@ object AppModule {
     fun provideNoteUseCases(repository: TransactionRepository,app: Application): TransactionUseCases{
         return TransactionUseCases(
             addTransaction = AddTransaction(repository,app.resources),
+            getInventoryTransaction = GetInventoryTransaction(repository),
+            deleteTransaction = DeleteTransaction(repository)
         )
     }
 

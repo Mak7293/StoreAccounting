@@ -1,10 +1,8 @@
-package com.example.storeaccounting.presentation.view_model
+package com.example.storeaccounting.presentation.inventory_view_model
 
 import android.app.Application
-import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
@@ -12,36 +10,41 @@ import com.example.storeaccounting.domain.model.Transaction
 import com.example.storeaccounting.domain.use_case.TransactionUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import saman.zamani.persiandate.PersianDate
-import java.util.InvalidPropertiesFormatException
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel@Inject constructor(
+class InventoryViewModel@Inject constructor(
     private val transactionUseCases: TransactionUseCases,
     private val applicationContext: Application):ViewModel() {
 
-    private val _state = mutableStateOf<ViewModelState>(ViewModelState())
-    val state: State<ViewModelState> = _state
+    private val _state = mutableStateOf<InventoryViewModelState>(InventoryViewModelState())
+    val state: State<InventoryViewModelState> = _state
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
+    private var getInventoryJob: Job? = null
 
-    fun onEvent(event: Event){
+    init {
+        getInventory()
+    }
+    fun onEvent(event: InventoryEvent){
         when(event){
-            is Event.InsertInventory  ->  {
+            is InventoryEvent.InsertInventory  ->  {
                 insertTransactionToDatabase(event.transaction)
             }
-            is Event.DeleteInventory  ->  {
-
+            is InventoryEvent.DeleteInventory  ->  {
+                deleteTransactionFromDatabase(event.transaction)
             }
-            is Event.UpdateInventory  ->  {
+            is InventoryEvent.UpdateInventory  ->  {
 
             }
 
@@ -62,11 +65,30 @@ class MainViewModel@Inject constructor(
             }
         }
     }
+    private fun deleteTransactionFromDatabase(transaction: Transaction){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                transactionUseCases.deleteTransaction(transaction)
+            }catch(e: Exception){
+                e.printStackTrace()
+            }
+        }
+    }
     fun getPersianDate(): PersianDate{
         return PersianDate()
     }
     sealed class UiEvent{
         data class ShowToast(val message: String): UiEvent()
         object SaveNote: UiEvent()
+    }
+    private fun getInventory(){
+        getInventoryJob?.cancel()
+        getInventoryJob = transactionUseCases.getInventoryTransaction()
+            .onEach {
+                _state.value  = state.value.copy(
+                    inventory = it,
+                )
+            }
+            .launchIn(viewModelScope)
     }
 }

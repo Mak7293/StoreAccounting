@@ -13,5 +13,5 @@ data class Transaction(
     val number: String,
     val sellPrice: String,
     val buyPrice: String,
-    val state: String
+    val transactionState: String
 )

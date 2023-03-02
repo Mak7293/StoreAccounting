@@ -12,4 +12,5 @@ interface TransactionRepository {
     suspend fun updateTransaction(transaction: Transaction)
 
     fun fetchAllTransaction(): Flow<List<Transaction>>
+    fun fetchAllInventoryTransaction():Flow<List<Transaction>>
 }
