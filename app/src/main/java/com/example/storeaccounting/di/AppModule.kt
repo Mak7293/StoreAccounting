@@ -39,6 +39,7 @@ object AppModule {
             addInventory = AddInventory(repository,app.resources),
             getInventory = GetInventory(repository),
             deleteInventory = DeleteInventory(repository),
+            updateInventory = UpdateInventory(repository,app.resources)
         )
     }
 

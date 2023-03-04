@@ -29,9 +29,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.presentation.General.General
 import com.example.storeaccounting.presentation.component.BottomNavigation
-import com.example.storeaccounting.presentation.inventory.AddToInventoryBottomSheetContent
+import com.example.storeaccounting.presentation.inventory.AddEditInventoryBottomSheetContent
 import com.example.storeaccounting.presentation.inventory.Inventory
 import com.example.storeaccounting.presentation.sale.Sale
 import com.example.storeaccounting.presentation.setting.Setting
@@ -99,6 +100,9 @@ fun Main(
     val fabState = remember {
         mutableStateOf<String>("")
     }
+    var inventory by remember {
+        mutableStateOf<InventoryEntity?>(null)
+    }
     val sheetState = rememberBottomSheetState(
         initialValue = BottomSheetValue.Collapsed,
         animationSpec = tween(
@@ -121,7 +125,19 @@ fun Main(
                     Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
 
                 }
-                is  InventoryViewModel.UiEvent.SaveNote  ->  {
+                is  InventoryViewModel.UiEvent.SaveInventory  ->  {
+                    scope.launch {
+                        if(sheetState.isCollapsed) {
+                            sheetState.expand()
+                        } else {
+                            sheetState.collapse()
+                        }
+                    }
+                }
+                is InventoryViewModel.UiEvent.DeleteInventory   -> {
+                    Toast.makeText(context,"کالا با موفقیت حذف شد.",Toast.LENGTH_SHORT).show()
+                }
+                is InventoryViewModel.UiEvent.UpdateInventory   -> {
                     scope.launch {
                         if(sheetState.isCollapsed) {
                             sheetState.expand()
@@ -131,7 +147,6 @@ fun Main(
                     }
                 }
             }
-
         }
     }
     BottomSheetScaffold(
@@ -139,8 +154,8 @@ fun Main(
         sheetContent = {
             when(fabState.value){
                 FabRoute.InventoryFab.route ->  {
-                    AddToInventoryBottomSheetContent(
-                        Modifier
+                    AddEditInventoryBottomSheetContent(
+                        modifier = Modifier
                             .fillMaxWidth()
                             .height(440.dp)
                             .background(
@@ -151,7 +166,8 @@ fun Main(
                                     )
                                 )
                             ),
-                        viewModel
+                        inventory = inventory,
+                        viewModel = viewModel,
                     ){
                         scope.launch {
                             if(sheetState.isCollapsed) {
@@ -219,8 +235,10 @@ fun Main(
                     General()
                 }
                 composable(route = NavigationRoute.Inventory.route){
-                    Inventory(){
-                        fabState.value = it.route
+                    Inventory(
+                    ){ route , _invnetory   ->
+
+                        fabState.value = route.route
                         scope.launch {
                             if(sheetState.isCollapsed) {
                                 sheetState.expand()
@@ -229,6 +247,7 @@ fun Main(
                                 sheetState.collapse()
                             }
                         }
+                        inventory = _invnetory
                     }
                 }
                 composable(route = NavigationRoute.Sale.route){

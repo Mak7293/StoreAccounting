@@ -2,7 +2,6 @@ package com.example.storeaccounting.presentation.inventory
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -29,9 +28,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
-import com.example.storeaccounting.domain.util.TransactionState
 import com.example.storeaccounting.presentation.component.CustomDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
@@ -44,17 +41,18 @@ import com.example.storeaccounting.ui.theme.persian_font_semi_bold
 import saman.zamani.persiandate.PersianDateFormat
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Inventory(
     context: Context = LocalContext.current,
-    onClick: (FabRoute) ->  Unit
+    onClick: (FabRoute, InventoryEntity?) ->  Unit
 ) {
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    onClick(FabRoute.InventoryFab)
+                    onClick(FabRoute.InventoryFab,null)
                 },
                 backgroundColor = MaterialTheme.colors.primary
             ){
@@ -71,15 +69,18 @@ fun Inventory(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-
-        )
+        ){  InventoryEntity ->
+            onClick(FabRoute.InventoryFab,InventoryEntity)
+        }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun InventoryContent(
     modifier : Modifier = Modifier,
-    viewModel: InventoryViewModel = hiltViewModel()
+    viewModel: InventoryViewModel = hiltViewModel(),
+    onData:(InventoryEntity) -> Unit
 ){
     val showDialog =  remember {
         mutableStateOf(false)
@@ -96,12 +97,17 @@ fun InventoryContent(
             modifier =Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp, start = 16.dp, end = 16.dp)
         )
-        InventoryList(){
-            inventory.value = it
-            showDialog.value = true
-        }
+        InventoryList(
+            showCustomDialog = {
+                inventory.value = it
+                showDialog.value = true
+            },
+            showEditBottomSheet = {
+                onData(it)
+            }
+        )
     }
-    if(showDialog.value) {
+    if (showDialog.value) {
         CustomDialog(
             modifier = Modifier
                 .width(350.dp)
@@ -158,7 +164,8 @@ fun InventoryHistory(
 @Composable
 fun InventoryList(
     viewModel: InventoryViewModel = hiltViewModel(),
-    showCustomDialog: (InventoryEntity) -> Unit
+    showCustomDialog: (InventoryEntity) -> Unit,
+    showEditBottomSheet: (InventoryEntity)  -> Unit
 ){
 
     val inventoryList = viewModel.state.value.inventory
@@ -175,21 +182,27 @@ fun InventoryList(
                 item = inventoryList[it],
                 verticalPadding = 8.dp,
                 contentPadding = 8.dp,
-                onEdit = { /*TODO*/ },
+                onEdit = {  Inventory ->
+                    showEditBottomSheet(Inventory)
+                },
                 onDelete = { Inventory ->
                     showCustomDialog(Inventory)
+                },
+                onHistory = {
+
                 }
             )
         }
     }
 }
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AddToInventoryBottomSheetContent(
+fun AddEditInventoryBottomSheetContent(
     modifier: Modifier = Modifier,
+    inventory: InventoryEntity?,
     viewModel: InventoryViewModel,
-    onClick:()  ->  Unit,
+    onDismiss:() -> Unit
 ) {
-
     val currentDate = PersianDateFormat("Y/m/d")
         .format(viewModel.getPersianDate()).toString()
     var title by remember {
@@ -224,7 +237,7 @@ fun AddToInventoryBottomSheetContent(
                 )
             }
             EditText(
-                hint = "نام کالا ...",
+                hint = inventory?.title ?: "نام کالا ...",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp)
@@ -232,7 +245,7 @@ fun AddToInventoryBottomSheetContent(
                 title = it
             }
             EditText(
-                hint = "تعداد کالا ...",
+                hint = inventory?.number ?: "تعداد کالا ...",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp)
@@ -241,7 +254,7 @@ fun AddToInventoryBottomSheetContent(
                 number = it
             }
             EditText(
-                hint = "قیمت خرید ...",
+                hint = inventory?.buyPrice ?: "قیمت خرید ...",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp)
@@ -249,7 +262,7 @@ fun AddToInventoryBottomSheetContent(
                 buyPrice = it
             }
             EditText(
-                hint = "قیمت فروش ...",
+                hint = inventory?.sellPrice ?:"قیمت فروش ...",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp)
@@ -287,7 +300,7 @@ fun AddToInventoryBottomSheetContent(
                 Button(
                     modifier = Modifier.width(175.dp),
                     onClick = {
-                        onClick()
+                        onDismiss()
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF013A63))
@@ -305,8 +318,9 @@ fun AddToInventoryBottomSheetContent(
                 Button(
                     modifier = Modifier.width(175.dp),
                     onClick = {
-
                         val inventoryEntity = InventoryEntity(
+                            id = inventory?.id,
+                            createdTimeStamp = inventory?.createdTimeStamp ?: System.currentTimeMillis(),
                             date = currentDate,
                             timeStamp = System.currentTimeMillis(),
                             title = title,
@@ -314,7 +328,11 @@ fun AddToInventoryBottomSheetContent(
                             sellPrice = sellPrice,
                             buyPrice = buyPrice,
                         )
-                        viewModel.onEvent(InventoryEvent.InsertInventory(inventoryEntity))
+                        if(inventory == null){
+                            viewModel.onEvent(InventoryEvent.InsertInventory(inventoryEntity))
+                        }else{
+                            viewModel.onEvent(InventoryEvent.UpdateInventory(inventoryEntity))
+                        }
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF008506))
@@ -324,7 +342,7 @@ fun AddToInventoryBottomSheetContent(
                         modifier = Modifier
                             .fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        text = "ذخیره کردن",
+                        text = if(inventory == null) "ذخیره کردن" else "به روزرسانی",
                         color = Color.White,
                         fontFamily = persian_font_medium,
                         fontSize = 16.sp
@@ -342,145 +360,164 @@ fun InventoryItem(
     item: InventoryEntity,
     verticalPadding: Dp,
     contentPadding: Dp,
-    onEdit: () -> Unit,
-    onDelete: (InventoryEntity)  -> Unit
+    onEdit: (InventoryEntity) -> Unit,
+    onDelete: (InventoryEntity)  -> Unit,
+    onHistory: (InventoryEntity)  -> Unit
 ) {
-        RightToLeftLayout {
-            Box(
-                modifier = modifier
-                    .padding(vertical = verticalPadding)
-                    .shadow(5.dp, RoundedCornerShape(20.dp))
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                MaterialTheme.colors.primary,
-                                MaterialTheme.colors.secondary
-                            )
+    RightToLeftLayout {
+        Box(
+            modifier = modifier
+                .padding(vertical = verticalPadding)
+                .shadow(5.dp, RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colors.primary,
+                            MaterialTheme.colors.secondary
                         )
                     )
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.TopStart
+                )
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopStart
+        ) {
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
             ) {
-                Row(
-                    modifier = modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Column(
-                        modifier = modifier.padding(contentPadding),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.Start
-
+                Column(
+                    modifier = modifier.padding(contentPadding),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.Start
+                ){
+                    Text(
+                        modifier = modifier,
+                        text ="نام کالا: ${item.title}",
+                        fontFamily = persian_font_semi_bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                    Text(
+                        modifier = modifier,
+                        text ="تعداد کالا: ${item.number}",
+                        fontFamily = persian_font_semi_bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                    Text(
+                        modifier = modifier,
+                        text ="قیمت خرید کالا: ${item.buyPrice}",
+                        fontFamily = persian_font_semi_bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                    Text(
+                        modifier = modifier,
+                        text ="قیمت فروش کالا: ${item.sellPrice}",
+                        fontFamily = persian_font_semi_bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.End
+                ){
+                    Box(
+                        modifier = modifier
+                            .border(
+                                width = 1.dp,
+                                color = Color.LightGray,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .background(
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color.Transparent
+                            )
                     ){
                         Text(
-                            modifier = modifier,
-                            text ="نام کالا: ${item.title}",
-                            fontFamily = persian_font_semi_bold,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colors.onPrimary
-                        )
-                        Text(
-                            modifier = modifier,
-                            text ="تعداد کالا: ${item.number}",
+                            modifier = modifier.padding(3.dp),
+                            text ="حاشیه سود کالا: ${item.sellPrice.toInt() - item.buyPrice.toInt()}",
                             fontFamily = persian_font_semi_bold,
                             fontSize = 14.sp,
-                            color = MaterialTheme.colors.onPrimary
-                        )
-                        Text(
-                            modifier = modifier,
-                            text ="قیمت خرید کالا: ${item.buyPrice}",
-                            fontFamily = persian_font_semi_bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colors.onPrimary
-                        )
-                        Text(
-                            modifier = modifier,
-                            text ="قیمت فروش کالا: ${item.sellPrice}",
-                            fontFamily = persian_font_semi_bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colors.onPrimary
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colors.onPrimary,
                         )
                     }
-                    Column(
-                        modifier = Modifier
-                            .padding(contentPadding)
-                            .fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        horizontalAlignment = Alignment.End
-                    ){
-                        Box(
+                    Spacer(modifier = Modifier.height(25.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.Bottom,
+                        modifier = modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = Color.Black,
                             modifier = modifier
-
+                                .offset(x = (-20).dp)
+                                .size(40.dp)
+                                .background(
+                                    color = Color.Green,
+                                    shape = CircleShape,
+                                )
                                 .border(
                                     width = 1.dp,
                                     color = Color.LightGray,
-                                    shape = RoundedCornerShape(10.dp)
+                                    shape = CircleShape
                                 )
+                                .padding(6.dp)
+                                .clickable {
+                                    onEdit(item)
+                                }
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = Color.Black,
+                            modifier = modifier
+                                .offset(x = (-10).dp)
+                                .size(40.dp)
                                 .background(
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = Color.Transparent
+                                    color = Color.Red,
+                                    shape = CircleShape,
                                 )
-                        ){
-                            Text(
-                                modifier = modifier.padding(3.dp),
-                                text ="حاشیه سود کالا: ${item.sellPrice.toInt() - item.buyPrice.toInt()}",
-                                fontFamily = persian_font_semi_bold,
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colors.onPrimary,
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(25.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.Bottom,
-                            modifier = modifier.fillMaxSize()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null,
-                                tint = Color.Black,
-                                modifier = modifier
-                                    .offset(x = (-10).dp)
-                                    .size(40.dp)
-                                    .background(
-                                        color = Color.Green,
-                                        shape = CircleShape,
-                                    )
-                                    .border(
-                                        width = 1.dp,
-                                        color = Color.LightGray,
-                                        shape = CircleShape
-                                    )
-                                    .padding(6.dp)
-                                    .clickable {
-                                        onEdit()
-                                    }
-                            )
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = Color.Black,
-                                modifier = modifier
-                                    .size(40.dp)
-                                    .background(
-                                        color = Color.Red,
-                                        shape = CircleShape,
-                                    )
-                                    .border(
-                                        width = 1.dp,
-                                        color = Color.LightGray,
-                                        shape = CircleShape
-                                    )
-                                    .padding(6.dp)
-                                    .clickable {
-                                        onDelete(item)
-                                    }
-                            )
-                        }
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.LightGray,
+                                    shape = CircleShape
+                                )
+                                .padding(6.dp)
+                                .clickable {
+                                    onDelete(item)
+                                }
+                        )
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = null,
+                            tint = Color.Black,
+                            modifier = modifier
+                                .size(40.dp)
+                                .background(
+                                    color = Color.Yellow,
+                                    shape = CircleShape,
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.LightGray,
+                                    shape = CircleShape
+                                )
+                                .padding(6.dp)
+                                .clickable {
+                                    onHistory(item)
+                                }
+                        )
                     }
                 }
             }
         }
-
+    }
 }

@@ -9,11 +9,12 @@ import com.example.storeaccounting.domain.util.TransactionState
 data class History(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
+    val createdTimeStamp: Long ,
     val transaction: String,
-    val title: String?,
-    val number: String?,
-    val buyPrice: String?,
-    val sellPrice: String?,
-    val date: String?,
-    val timeStamp: Long?,
+    val title: String,
+    val number: String,
+    val buyPrice: String,
+    val sellPrice: String,
+    val date: String,
+    val timeStamp: Long,
 )

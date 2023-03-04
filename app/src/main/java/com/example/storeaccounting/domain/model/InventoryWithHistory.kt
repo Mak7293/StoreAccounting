@@ -7,8 +7,8 @@ data class InventoryWithHistory (
     @Embedded
     val inventory: InventoryEntity,
     @Relation(
-        parentColumn = "id",
-        entityColumn = "id"
+        parentColumn = "createdTimeStamp",
+        entityColumn = "createdTimeStamp"
     )
     val history: List<History>
 )

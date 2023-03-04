@@ -16,4 +16,6 @@
     <string name="zero_sell_price_exception">قیمت فروش کالا نمیتواند صفر باشد.</string>
     <string name="digit_sell_price_exception">قیمت فروش کالا تنها میتواند عدد باشد.</string>
     <string name="negative_sell_price_exception">قیمت فروش کالا نمیتواند منفی باشد.</string>
+
+    <string name="alert_delete_inventory">عملیات حذف با موفقیت انجام نشد، لطفا دوباره تلاش کنید.</string>
 </resources>

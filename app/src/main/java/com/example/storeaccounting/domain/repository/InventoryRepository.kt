@@ -3,7 +3,6 @@ package com.example.storeaccounting.domain.repository
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.model.InventoryWithHistory
-import com.example.storeaccounting.presentation.util.NavigationRoute
 import kotlinx.coroutines.flow.Flow
 
 interface InventoryRepository {

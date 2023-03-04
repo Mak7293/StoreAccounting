@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class InventoryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
+    val createdTimeStamp: Long = 0,
     val date: String = "",
     val timeStamp: Long = 0,
     val title: String = "",

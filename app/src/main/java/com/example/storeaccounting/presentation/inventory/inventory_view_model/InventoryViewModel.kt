@@ -5,8 +5,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
-import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.use_case.UseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,7 +46,23 @@ class InventoryViewModel@Inject constructor(
                 deleteTransactionFromDatabase(event.inventoryEntity)
             }
             is InventoryEvent.UpdateInventory ->  {
+                updateInventory(event.inventoryEntity)
+            }
+        }
+    }
+    private fun updateInventory(inventoryEntity: InventoryEntity){
+        viewModelScope.launch(Dispatchers.IO) {
+            try{
+                transactionUseCases.updateInventory(inventoryEntity)
+                _eventFlow.emit(
+                    UiEvent.UpdateInventory
+                )
 
+            }catch (e: InvalidTransactionException){
+                e.printStackTrace()
+                _eventFlow.emit(
+                    UiEvent.ShowToast(message = e.message!!)
+                )
             }
         }
     }
@@ -55,7 +71,7 @@ class InventoryViewModel@Inject constructor(
              try {
                  transactionUseCases.addInventory(inventoryEntity)
                  _eventFlow.emit(
-                     UiEvent.SaveNote
+                     UiEvent.SaveInventory
                  )
             }catch (e: InvalidTransactionException){
                 _eventFlow.emit(
@@ -68,8 +84,15 @@ class InventoryViewModel@Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 transactionUseCases.deleteInventory(inventoryEntity)
+                _eventFlow.emit(
+                    UiEvent.DeleteInventory
+                )
             }catch(e: Exception){
                 e.printStackTrace()
+                _eventFlow.emit(
+                    UiEvent.ShowToast(message =
+                    applicationContext.resources.getString(R.string.alert_delete_inventory))
+                )
             }
         }
     }
@@ -78,7 +101,9 @@ class InventoryViewModel@Inject constructor(
     }
     sealed class UiEvent{
         data class ShowToast(val message: String): UiEvent()
-        object SaveNote: UiEvent()
+        object SaveInventory: UiEvent()
+        object UpdateInventory: UiEvent()
+        object DeleteInventory: UiEvent()
     }
     private fun getInventory(){
         getInventoryJob?.cancel()
