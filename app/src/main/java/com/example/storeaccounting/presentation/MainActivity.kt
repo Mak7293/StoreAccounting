@@ -37,7 +37,7 @@ import com.example.storeaccounting.presentation.sale.Sale
 import com.example.storeaccounting.presentation.setting.Setting
 import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
-import com.example.storeaccounting.presentation.inventory_view_model.InventoryViewModel
+import com.example.storeaccounting.presentation.inventory.inventory_view_model.InventoryViewModel
 import com.example.storeaccounting.ui.theme.StoreAccountingTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest

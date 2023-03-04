@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.presentation.util.FabRoute
-import com.example.storeaccounting.presentation.inventory_view_model.InventoryViewModel
+import com.example.storeaccounting.presentation.inventory.inventory_view_model.InventoryViewModel
 
 @Composable
 fun Sale(

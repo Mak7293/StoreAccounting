@@ -3,42 +3,54 @@ package com.example.storeaccounting.domain.use_case
 import android.content.res.Resources
 import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
-import com.example.storeaccounting.domain.model.Transaction
-import com.example.storeaccounting.domain.repository.TransactionRepository
+import com.example.storeaccounting.domain.model.History
+import com.example.storeaccounting.domain.model.InventoryEntity
+import com.example.storeaccounting.domain.repository.InventoryRepository
+import com.example.storeaccounting.domain.util.TransactionState
 
-class AddTransaction(private val repository: TransactionRepository, private val resource: Resources) {
-    suspend operator fun invoke(transaction: Transaction){
-        if(transaction.title.isBlank()){
+class AddInventory(private val repository: InventoryRepository, private val resource: Resources) {
+    suspend operator fun invoke(inventoryEntity: InventoryEntity){
+        if(inventoryEntity.title.isBlank()){
             throw InvalidTransactionException(resource.getString(R.string.blank_title_exception))
         }
-        if(transaction.number.isBlank()){
+        if(inventoryEntity.number.isBlank()){
             throw InvalidTransactionException(resource.getString(R.string.blank_number_exception))
-        }else if(checkNumberIsNotNegative(transaction.number)){
+        }else if(checkNumberIsNotNegative(inventoryEntity.number)){
             throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
-        }else if (checkNumberIsDigit(transaction.number)){
+        }else if (checkNumberIsDigit(inventoryEntity.number)){
             throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
-        }else if (transaction.number.toInt() == 0){
+        }else if (inventoryEntity.number.toInt() == 0){
             throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
         }
-        if(transaction.buyPrice.isBlank()){
+        if(inventoryEntity.buyPrice.isBlank()){
             throw InvalidTransactionException(resource.getString(R.string.blank_buy_price_exception))
-        }else if(checkNumberIsNotNegative(transaction.buyPrice)){
+        }else if(checkNumberIsNotNegative(inventoryEntity.buyPrice)){
             throw InvalidTransactionException(resource.getString(R.string.negative_buy_price_exception))
-        }else if (checkNumberIsDigit(transaction.buyPrice)){
+        }else if (checkNumberIsDigit(inventoryEntity.buyPrice)){
             throw InvalidTransactionException(resource.getString(R.string.digit_buy_price_exception))
-        }else if (transaction.buyPrice.toInt() == 0){
+        }else if (inventoryEntity.buyPrice.toInt() == 0){
             throw InvalidTransactionException(resource.getString(R.string.zero_buy_price_exception))
         }
-        if(transaction.sellPrice.isBlank()){
+        if(inventoryEntity.sellPrice.isBlank()){
             throw InvalidTransactionException(resource.getString(R.string.blank_sell_price_exception))
-        }else if(checkNumberIsNotNegative(transaction.sellPrice)){
+        }else if(checkNumberIsNotNegative(inventoryEntity.sellPrice)){
             throw InvalidTransactionException(resource.getString(R.string.negative_sell_price_exception))
-        }else if (checkNumberIsDigit(transaction.sellPrice)){
+        }else if (checkNumberIsDigit(inventoryEntity.sellPrice)){
             throw InvalidTransactionException(resource.getString(R.string.digit_sell_price_exception))
-        }else if (transaction.sellPrice.toInt() == 0){
+        }else if (inventoryEntity.sellPrice.toInt() == 0){
             throw InvalidTransactionException(resource.getString(R.string.zero_sell_price_exception))
         }
-        repository.insertTransaction(transaction)
+        repository.insertInventory(inventoryEntity)
+        val history = History(
+            transaction = TransactionState.Create.state,
+            title = inventoryEntity.title,
+            number = inventoryEntity.number,
+            sellPrice = inventoryEntity.sellPrice,
+            buyPrice = inventoryEntity.buyPrice,
+            date = inventoryEntity.date,
+            timeStamp = inventoryEntity.timeStamp
+        )
+        repository.insertHistory(history)
     }
     private fun checkNumberIsDigit(string: String):Boolean{
         for(i in string){

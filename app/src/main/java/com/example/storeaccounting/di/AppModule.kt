@@ -3,12 +3,9 @@ package com.example.storeaccounting.di
 import android.app.Application
 import androidx.room.Room
 import com.example.storeaccounting.data.data_source.TransactionDatabase
-import com.example.storeaccounting.data.repository.TransactionRepositoryImp
-import com.example.storeaccounting.domain.repository.TransactionRepository
-import com.example.storeaccounting.domain.use_case.AddTransaction
-import com.example.storeaccounting.domain.use_case.DeleteTransaction
-import com.example.storeaccounting.domain.use_case.GetInventoryTransaction
-import com.example.storeaccounting.domain.use_case.TransactionUseCases
+import com.example.storeaccounting.data.repository.InventoryRepositoryImp
+import com.example.storeaccounting.domain.repository.InventoryRepository
+import com.example.storeaccounting.domain.use_case.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,17 +28,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoteRepository(db: TransactionDatabase): TransactionRepository {
-        return TransactionRepositoryImp(db.transactionDao)
+    fun provideNoteRepository(db: TransactionDatabase): InventoryRepository {
+        return InventoryRepositoryImp(db.transactionDao)
     }
 
     @Provides
     @Singleton
-    fun provideNoteUseCases(repository: TransactionRepository,app: Application): TransactionUseCases{
-        return TransactionUseCases(
-            addTransaction = AddTransaction(repository,app.resources),
-            getInventoryTransaction = GetInventoryTransaction(repository),
-            deleteTransaction = DeleteTransaction(repository)
+    fun provideNoteUseCases(repository: InventoryRepository, app: Application): UseCases{
+        return UseCases(
+            addInventory = AddInventory(repository,app.resources),
+            getInventory = GetInventory(repository),
+            deleteInventory = DeleteInventory(repository),
         )
     }
 

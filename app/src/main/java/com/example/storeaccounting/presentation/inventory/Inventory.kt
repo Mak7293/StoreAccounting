@@ -1,6 +1,7 @@
 package com.example.storeaccounting.presentation.inventory
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -28,13 +29,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.storeaccounting.domain.model.Transaction
+import com.example.storeaccounting.domain.model.History
+import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.util.TransactionState
+import com.example.storeaccounting.presentation.component.CustomDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.util.FabRoute
-import com.example.storeaccounting.presentation.inventory_view_model.InventoryEvent
-import com.example.storeaccounting.presentation.inventory_view_model.InventoryViewModel
+import com.example.storeaccounting.presentation.inventory.inventory_view_model.InventoryEvent
+import com.example.storeaccounting.presentation.inventory.inventory_view_model.InventoryViewModel
 import com.example.storeaccounting.ui.theme.persian_font_medium
 import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
@@ -51,12 +54,7 @@ fun Inventory(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-
                     onClick(FabRoute.InventoryFab)
-                    Toast(context).apply {
-                        setText("Clicked!!")
-                        duration = Toast.LENGTH_SHORT
-                    }.show()
                 },
                 backgroundColor = MaterialTheme.colors.primary
             ){
@@ -81,7 +79,14 @@ fun Inventory(
 @Composable
 fun InventoryContent(
     modifier : Modifier = Modifier,
+    viewModel: InventoryViewModel = hiltViewModel()
 ){
+    val showDialog =  remember {
+        mutableStateOf(false)
+    }
+    val inventory = remember {
+        mutableStateOf(InventoryEntity())
+    }
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Top,
@@ -91,7 +96,33 @@ fun InventoryContent(
             modifier =Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp, start = 16.dp, end = 16.dp)
         )
-        InventoryList()
+        InventoryList(){
+            inventory.value = it
+            showDialog.value = true
+        }
+    }
+    if(showDialog.value) {
+        CustomDialog(
+            modifier = Modifier
+                .width(350.dp)
+                .height(175.dp),
+            setShowDialog = {
+                showDialog.value = it
+            },
+            title = "حذف کردن کالا از لیست",
+            content = "حذف این کالا سبب از بین رفتن تاریخچه آن نیز می شود." +
+                    " آیا مطمئن هستید که میخواهید این کالا را از لیست حذف کنید؟",
+            positiveButtonTitle = "حذف کن",
+            negativeButtonTitle = "خارج شدن",
+            onSuccess = {
+                Log.d("delete",inventory.value.title)
+                viewModel.onEvent(InventoryEvent.DeleteInventory(inventory.value))
+                showDialog.value = false
+            },
+            onCancel = {
+                showDialog.value = false
+            }
+        )
     }
 }
 
@@ -110,23 +141,26 @@ fun InventoryHistory(
                 modifier = Modifier
                     .fillMaxWidth(),
                 textAlign = TextAlign.Start,
-                text = "تاریخچه:",
+                text = "لیست کالا های فروشگاه:",
                 color = MaterialTheme.colors.primaryVariant,
                 fontFamily = persian_font_regular,
                 fontSize = 18.sp
             )
-            Divider(modifier = Modifier.fillMaxWidth().width(2.dp),
+            Divider(modifier = Modifier
+                .fillMaxWidth()
+                .width(2.dp),
                 color = Color.DarkGray
             )
         }
     }
-
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InventoryList(
-    viewModel: InventoryViewModel = hiltViewModel()
+    viewModel: InventoryViewModel = hiltViewModel(),
+    showCustomDialog: (InventoryEntity) -> Unit
 ){
+
     val inventoryList = viewModel.state.value.inventory
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
@@ -142,15 +176,13 @@ fun InventoryList(
                 verticalPadding = 8.dp,
                 contentPadding = 8.dp,
                 onEdit = { /*TODO*/ },
-                onDelete = { transaction ->
-                    viewModel.onEvent(InventoryEvent.DeleteInventory(transaction))
+                onDelete = { Inventory ->
+                    showCustomDialog(Inventory)
                 }
             )
-
         }
     }
 }
-
 @Composable
 fun AddToInventoryBottomSheetContent(
     modifier: Modifier = Modifier,
@@ -273,16 +305,16 @@ fun AddToInventoryBottomSheetContent(
                 Button(
                     modifier = Modifier.width(175.dp),
                     onClick = {
-                        val transaction = Transaction(
+
+                        val inventoryEntity = InventoryEntity(
                             date = currentDate,
                             timeStamp = System.currentTimeMillis(),
                             title = title,
                             number = number,
                             sellPrice = sellPrice,
                             buyPrice = buyPrice,
-                            transactionState = TransactionState.Inventory.state
                         )
-                        viewModel.onEvent(InventoryEvent.InsertInventory(transaction))
+                        viewModel.onEvent(InventoryEvent.InsertInventory(inventoryEntity))
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF008506))
@@ -307,11 +339,11 @@ fun AddToInventoryBottomSheetContent(
 @Composable
 fun InventoryItem(
     modifier: Modifier = Modifier,
-    item: Transaction,
+    item: InventoryEntity,
     verticalPadding: Dp,
     contentPadding: Dp,
     onEdit: () -> Unit,
-    onDelete: (Transaction)  -> Unit
+    onDelete: (InventoryEntity)  -> Unit
 ) {
         RightToLeftLayout {
             Box(
