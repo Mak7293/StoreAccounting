@@ -1,5 +1,6 @@
 package com.example.storeaccounting.presentation.component
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -23,14 +24,28 @@ import com.example.storeaccounting.ui.theme.persian_font_medium
 fun EditText(
     modifier: Modifier = Modifier,
     hint: String = "",
-    onText:(String) -> Unit
+    _text: String,
+    onText:(String) -> Unit,
 ){
+    Log.d("edit",_text)
     var text by remember {
-        mutableStateOf("")
+        mutableStateOf(_text)
     }
     var isHintDisplayed by remember {
-        mutableStateOf(true)
+        mutableStateOf(text == "")
     }
+    Log.d("edit1",text)
+
+    LaunchedEffect(key1 = _text){
+        if (_text == ""){
+            isHintDisplayed = true
+            text = _text
+        }else{
+            isHintDisplayed = false
+            text = _text
+        }
+    }
+
     RightToLeftLayout {
         Box(modifier = modifier){
             BasicTextField(

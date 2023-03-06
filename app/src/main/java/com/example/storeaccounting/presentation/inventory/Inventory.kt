@@ -4,10 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -29,7 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.domain.model.InventoryEntity
-import com.example.storeaccounting.presentation.component.CustomDialog
+import com.example.storeaccounting.presentation.component.CustomDeleteDialog
+import com.example.storeaccounting.presentation.component.CustomHistoryDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.util.FabRoute
@@ -70,6 +68,7 @@ fun Inventory(
                 .fillMaxSize()
                 .padding(it)
         ){  InventoryEntity ->
+
             onClick(FabRoute.InventoryFab,InventoryEntity)
         }
     }
@@ -82,7 +81,10 @@ fun InventoryContent(
     viewModel: InventoryViewModel = hiltViewModel(),
     onData:(InventoryEntity) -> Unit
 ){
-    val showDialog =  remember {
+    val showDeleteDialog =  remember {
+        mutableStateOf(false)
+    }
+    val showHistoryDialog =  remember {
         mutableStateOf(false)
     }
     val inventory = remember {
@@ -98,22 +100,36 @@ fun InventoryContent(
             contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp, start = 16.dp, end = 16.dp)
         )
         InventoryList(
-            showCustomDialog = {
+            showDeleteCustomDialog = {
                 inventory.value = it
-                showDialog.value = true
+                showDeleteDialog.value = true
             },
             showEditBottomSheet = {
+
                 onData(it)
+            },
+            showHistoryCustomDialog = {
+                inventory.value = it
+                showHistoryDialog.value = true
             }
         )
     }
-    if (showDialog.value) {
-        CustomDialog(
+    if(showHistoryDialog.value){
+        CustomHistoryDialog(
+            modifier = Modifier.height(600.dp).width(400.dp),
+            historyList = viewModel.getHistoryList(inventory.value.createdTimeStamp) ,
+            setShowDialog = {
+                showHistoryDialog.value = it
+            }
+        )
+    }
+    if (showDeleteDialog.value) {
+        CustomDeleteDialog(
             modifier = Modifier
                 .width(350.dp)
                 .height(175.dp),
             setShowDialog = {
-                showDialog.value = it
+                showDeleteDialog.value = it
             },
             title = "حذف کردن کالا از لیست",
             content = "حذف این کالا سبب از بین رفتن تاریخچه آن نیز می شود." +
@@ -123,10 +139,10 @@ fun InventoryContent(
             onSuccess = {
                 Log.d("delete",inventory.value.title)
                 viewModel.onEvent(InventoryEvent.DeleteInventory(inventory.value))
-                showDialog.value = false
+                showDeleteDialog.value = false
             },
             onCancel = {
-                showDialog.value = false
+                showDeleteDialog.value = false
             }
         )
     }
@@ -155,7 +171,7 @@ fun InventoryHistory(
             Divider(modifier = Modifier
                 .fillMaxWidth()
                 .width(2.dp),
-                color = Color.DarkGray
+                color = if(isSystemInDarkTheme()) Color.Gray else Color.DarkGray
             )
         }
     }
@@ -164,8 +180,9 @@ fun InventoryHistory(
 @Composable
 fun InventoryList(
     viewModel: InventoryViewModel = hiltViewModel(),
-    showCustomDialog: (InventoryEntity) -> Unit,
-    showEditBottomSheet: (InventoryEntity)  -> Unit
+    showDeleteCustomDialog: (InventoryEntity) -> Unit,
+    showEditBottomSheet: (InventoryEntity)  -> Unit,
+    showHistoryCustomDialog: (InventoryEntity)  -> Unit
 ){
 
     val inventoryList = viewModel.state.value.inventory
@@ -186,10 +203,10 @@ fun InventoryList(
                     showEditBottomSheet(Inventory)
                 },
                 onDelete = { Inventory ->
-                    showCustomDialog(Inventory)
+                    showDeleteCustomDialog(Inventory)
                 },
-                onHistory = {
-
+                onHistory = { Inventory ->
+                    showHistoryCustomDialog(Inventory)
                 }
             )
         }
@@ -206,16 +223,16 @@ fun AddEditInventoryBottomSheetContent(
     val currentDate = PersianDateFormat("Y/m/d")
         .format(viewModel.getPersianDate()).toString()
     var title by remember {
-        mutableStateOf("")
+        mutableStateOf(inventory?.title ?: "")
     }
     var number by remember {
-        mutableStateOf("")
+        mutableStateOf(inventory?.number ?: "")
     }
     var sellPrice by remember {
-        mutableStateOf("")
+        mutableStateOf(inventory?.sellPrice ?: "")
     }
     var buyPrice by remember {
-        mutableStateOf("")
+        mutableStateOf(inventory?.buyPrice ?: "")
     }
     Box(
         modifier = modifier,
@@ -230,42 +247,45 @@ fun AddEditInventoryBottomSheetContent(
                         .fillMaxWidth()
                         .padding(top = 15.dp),
                     textAlign = TextAlign.Center,
-                    text = "نام و تعداد کالا را وارد کنید:",
+                    text = if(inventory == null) "نام و تعداد کالا را وارد کنید:" else "نام و تعداد کالا را ویرایش کنید:",
                     color = MaterialTheme.colors.primaryVariant,
                     fontFamily = persian_font_regular,
                     fontSize = 18.sp
                 )
             }
             EditText(
-                hint = inventory?.title ?: "نام کالا ...",
+                hint =  "نام کالا ...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                _text = inventory?.title ?: ""
             ){
                 title = it
             }
             EditText(
-                hint = inventory?.number ?: "تعداد کالا ...",
+                hint ="تعداد کالا ...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                _text = inventory?.number ?: ""
             ){
-
                 number = it
             }
             EditText(
-                hint = inventory?.buyPrice ?: "قیمت خرید ...",
+                hint = "قیمت خرید ...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                _text = inventory?.buyPrice ?: ""
             ){
                 buyPrice = it
             }
             EditText(
-                hint = inventory?.sellPrice ?:"قیمت فروش ...",
+                hint ="قیمت فروش ...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                _text = inventory?.sellPrice ?: ""
             ){
                 sellPrice = it
             }

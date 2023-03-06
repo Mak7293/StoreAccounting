@@ -15,7 +15,7 @@ interface InventoryRepository {
 
     fun fetchAllInventory(): Flow<List<InventoryEntity>>
 
-    suspend fun getHistoriesByInventoryTimeStamp(id: Int): InventoryWithHistory
+    suspend fun getHistoriesByInventoryTimeStamp(id: Long): InventoryWithHistory
 
     suspend fun insertHistory(history: History)
 

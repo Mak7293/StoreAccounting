@@ -5,6 +5,7 @@ import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.model.InventoryWithHistory
 import kotlinx.coroutines.flow.Flow
+import java.sql.Timestamp
 
 @Dao
 interface InventoryDao {
@@ -28,8 +29,8 @@ interface InventoryDao {
     fun fetchAllInventory(): Flow<List<InventoryEntity>>
 
     @Transaction
-    @Query("SELECT * FROM inventory_entity_table WHERE id = :id")
-    suspend fun getHistoriesByInventoryTimeStamp(id: Int): InventoryWithHistory
+    @Query("SELECT * FROM inventory_entity_table WHERE createdTimestamp = :createdTimestamp")
+    suspend fun getHistoriesByInventoryTimeStamp(createdTimestamp: Long): InventoryWithHistory
 
 
 }

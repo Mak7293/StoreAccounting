@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
+import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.use_case.UseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,12 +18,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import saman.zamani.persiandate.PersianDate
 import javax.inject.Inject
 
 @HiltViewModel
 class InventoryViewModel@Inject constructor(
-    private val transactionUseCases: UseCases,
+    private val inventoryUseCases: UseCases,
     private val applicationContext: Application
     ):ViewModel() {
 
@@ -53,7 +55,7 @@ class InventoryViewModel@Inject constructor(
     private fun updateInventory(inventoryEntity: InventoryEntity){
         viewModelScope.launch(Dispatchers.IO) {
             try{
-                transactionUseCases.updateInventory(inventoryEntity)
+                inventoryUseCases.updateInventory(inventoryEntity)
                 _eventFlow.emit(
                     UiEvent.UpdateInventory
                 )
@@ -69,7 +71,7 @@ class InventoryViewModel@Inject constructor(
     private fun insertInventoryToDatabase(inventoryEntity: InventoryEntity){
         viewModelScope.launch(Dispatchers.IO) {
              try {
-                 transactionUseCases.addInventory(inventoryEntity)
+                 inventoryUseCases.addInventory(inventoryEntity)
                  _eventFlow.emit(
                      UiEvent.SaveInventory
                  )
@@ -83,7 +85,7 @@ class InventoryViewModel@Inject constructor(
     private fun deleteTransactionFromDatabase(inventoryEntity: InventoryEntity){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                transactionUseCases.deleteInventory(inventoryEntity)
+                inventoryUseCases.deleteInventory(inventoryEntity)
                 _eventFlow.emit(
                     UiEvent.DeleteInventory
                 )
@@ -99,6 +101,13 @@ class InventoryViewModel@Inject constructor(
     fun getPersianDate(): PersianDate{
         return PersianDate()
     }
+    fun getHistoryList(createdTimeStamp: Long): List<History> {
+        val list: List<History>
+        runBlocking {
+            list = inventoryUseCases.getHistoryListForSpecificInventory(createdTimeStamp).history
+        }
+        return list
+    }
     sealed class UiEvent{
         data class ShowToast(val message: String): UiEvent()
         object SaveInventory: UiEvent()
@@ -107,7 +116,7 @@ class InventoryViewModel@Inject constructor(
     }
     private fun getInventory(){
         getInventoryJob?.cancel()
-        getInventoryJob = transactionUseCases.getInventory()
+        getInventoryJob = inventoryUseCases.getInventory()
             .onEach {
                 _state.value  = state.value.copy(
                     inventory = it,

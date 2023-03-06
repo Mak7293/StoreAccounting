@@ -1,5 +1,6 @@
 package com.example.storeaccounting.presentation.component
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -57,7 +58,7 @@ fun BottomNavigation(
                         modifier = Modifier
                             .size(
                                 if(currentRoute == it.route){
-                                30.dp
+                                    30.dp
                                 }else{
                                     25.dp
                                 }

@@ -25,7 +25,7 @@ class InventoryRepositoryImp(private val dao: InventoryDao): InventoryRepository
         return dao.fetchAllInventory()
     }
 
-    override suspend fun getHistoriesByInventoryTimeStamp(id: Int): InventoryWithHistory {
+    override suspend fun getHistoriesByInventoryTimeStamp(id: Long): InventoryWithHistory {
         return dao.getHistoriesByInventoryTimeStamp(id)
     }
 

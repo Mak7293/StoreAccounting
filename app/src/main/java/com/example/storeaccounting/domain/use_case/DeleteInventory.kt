@@ -9,7 +9,7 @@ class DeleteInventory(private val repository: InventoryRepository) {
 
     suspend operator fun invoke(inventoryEntity: InventoryEntity){
 
-        val inventoryWithHistory = repository.getHistoriesByInventoryTimeStamp(inventoryEntity.id!!)
+        val inventoryWithHistory = repository.getHistoriesByInventoryTimeStamp(inventoryEntity.createdTimeStamp)
         inventoryWithHistory.history.forEach {
             repository.deleteHistory(it)
         }
