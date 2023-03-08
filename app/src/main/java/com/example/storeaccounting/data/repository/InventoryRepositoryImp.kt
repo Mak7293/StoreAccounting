@@ -36,4 +36,8 @@ class InventoryRepositoryImp(private val dao: InventoryDao): InventoryRepository
     override suspend fun deleteHistory(history: History) {
         dao.deleteHistory(history)
     }
+
+    override fun fetchAllHistory(): Flow<List<History>> {
+        return dao.fetchAllHistory()
+    }
 }

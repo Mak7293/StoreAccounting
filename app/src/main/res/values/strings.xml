@@ -18,4 +18,7 @@
     <string name="negative_sell_price_exception">قیمت فروش کالا نمیتواند منفی باشد.</string>
 
     <string name="alert_delete_inventory">عملیات حذف با موفقیت انجام نشد، لطفا دوباره تلاش کنید.</string>
+
+    <string name="alert_sale_inventory">عملیات فروش با موفقیت انجام نشد، لطفا دوباره تلاش کنید.</string>
+    <string name="sale_number_exception">تعداد کالای فروخته شده نمیتواند بیشتر از تعداد کالای موجود باشد.</string>
 </resources>

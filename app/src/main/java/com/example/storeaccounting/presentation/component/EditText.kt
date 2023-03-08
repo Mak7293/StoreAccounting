@@ -16,6 +16,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.storeaccounting.ui.theme.persian_font_medium
@@ -45,7 +46,6 @@ fun EditText(
             text = _text
         }
     }
-
     RightToLeftLayout {
         Box(modifier = modifier){
             BasicTextField(
@@ -81,7 +81,7 @@ fun EditText(
                         if (text.isEmpty()) {
                             isHintDisplayed = !it.isFocused
                         }
-                    }
+                    },
             )
             if(isHintDisplayed){
                 Text(

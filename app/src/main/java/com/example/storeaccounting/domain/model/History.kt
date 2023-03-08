@@ -1,6 +1,7 @@
 package com.example.storeaccounting.domain.model
 
 import android.icu.text.CaseMap.Title
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.storeaccounting.domain.util.TransactionState
@@ -9,7 +10,7 @@ import com.example.storeaccounting.domain.util.TransactionState
 data class History(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
-    val createdTimeStamp: Long ,
+    val createdTimeStamp: Long,
     val transaction: String,
     val title: String,
     val number: String,

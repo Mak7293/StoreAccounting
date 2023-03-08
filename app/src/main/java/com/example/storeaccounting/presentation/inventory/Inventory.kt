@@ -31,8 +31,8 @@ import com.example.storeaccounting.presentation.component.CustomHistoryDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.util.FabRoute
-import com.example.storeaccounting.presentation.inventory.inventory_view_model.InventoryEvent
-import com.example.storeaccounting.presentation.inventory.inventory_view_model.InventoryViewModel
+import com.example.storeaccounting.presentation.view_model.Event
+import com.example.storeaccounting.presentation.view_model.ViewModel
 import com.example.storeaccounting.ui.theme.persian_font_medium
 import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
@@ -78,7 +78,7 @@ fun Inventory(
 @Composable
 fun InventoryContent(
     modifier : Modifier = Modifier,
-    viewModel: InventoryViewModel = hiltViewModel(),
+    viewModel: ViewModel = hiltViewModel(),
     onData:(InventoryEntity) -> Unit
 ){
     val showDeleteDialog =  remember {
@@ -138,7 +138,7 @@ fun InventoryContent(
             negativeButtonTitle = "خارج شدن",
             onSuccess = {
                 Log.d("delete",inventory.value.title)
-                viewModel.onEvent(InventoryEvent.DeleteInventory(inventory.value))
+                viewModel.onEvent(Event.DeleteInventory(inventory.value))
                 showDeleteDialog.value = false
             },
             onCancel = {
@@ -179,7 +179,7 @@ fun InventoryHistory(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InventoryList(
-    viewModel: InventoryViewModel = hiltViewModel(),
+    viewModel: ViewModel = hiltViewModel(),
     showDeleteCustomDialog: (InventoryEntity) -> Unit,
     showEditBottomSheet: (InventoryEntity)  -> Unit,
     showHistoryCustomDialog: (InventoryEntity)  -> Unit
@@ -217,7 +217,7 @@ fun InventoryList(
 fun AddEditInventoryBottomSheetContent(
     modifier: Modifier = Modifier,
     inventory: InventoryEntity?,
-    viewModel: InventoryViewModel,
+    viewModel: ViewModel,
     onDismiss:() -> Unit
 ) {
     val currentDate = PersianDateFormat("Y/m/d")
@@ -349,9 +349,9 @@ fun AddEditInventoryBottomSheetContent(
                             buyPrice = buyPrice,
                         )
                         if(inventory == null){
-                            viewModel.onEvent(InventoryEvent.InsertInventory(inventoryEntity))
+                            viewModel.onEvent(Event.InsertInventory(inventoryEntity))
                         }else{
-                            viewModel.onEvent(InventoryEvent.UpdateInventory(inventoryEntity))
+                            viewModel.onEvent(Event.UpdateInventory(inventoryEntity))
                         }
                     },
                     shape = RoundedCornerShape(100),

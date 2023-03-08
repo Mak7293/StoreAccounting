@@ -1,6 +1,7 @@
-package com.example.storeaccounting.presentation.inventory.inventory_view_model
+package com.example.storeaccounting.presentation.view_model
 
 import android.app.Application
+import android.database.SQLException
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -23,32 +24,58 @@ import saman.zamani.persiandate.PersianDate
 import javax.inject.Inject
 
 @HiltViewModel
-class InventoryViewModel@Inject constructor(
+class ViewModel@Inject constructor(
     private val inventoryUseCases: UseCases,
     private val applicationContext: Application
     ):ViewModel() {
 
-    private val _state = mutableStateOf<InventoryViewModelState>(InventoryViewModelState())
-    val state: State<InventoryViewModelState> = _state
+    private val _state = mutableStateOf<ViewModelState>(ViewModelState())
+    val state: State<ViewModelState> = _state
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var getInventoryJob: Job? = null
+    private var getHistoryJob: Job? = null
 
     init {
         getInventory()
+        getHistory()
     }
-    fun onEvent(event: InventoryEvent){
+    fun onEvent(event: Event){
         when(event){
-            is InventoryEvent.InsertInventory ->  {
+            is Event.InsertInventory ->  {
                 insertInventoryToDatabase(event.inventoryEntity)
             }
-            is InventoryEvent.DeleteInventory ->  {
+            is Event.DeleteInventory ->  {
                 deleteTransactionFromDatabase(event.inventoryEntity)
             }
-            is InventoryEvent.UpdateInventory ->  {
+            is Event.UpdateInventory ->  {
                 updateInventory(event.inventoryEntity)
+            }
+            is Event.SaleInventory  ->  {
+                saleInventory(event.newInventoryEntity,event.previousInventory)
+            }
+        }
+    }
+
+    private fun saleInventory(
+        newInventoryEntity: InventoryEntity,
+        previousInventoryEntity: InventoryEntity){
+
+        viewModelScope.launch(Dispatchers.IO){
+            try{
+                inventoryUseCases.saleInventory(
+                    newInventoryEntity = newInventoryEntity,
+                    previousInventoryEntity = previousInventoryEntity)
+                _eventFlow.emit(
+                    UiEvent.SaveInventory
+                )
+            }catch (e: InvalidTransactionException){
+                e.printStackTrace()
+                _eventFlow.emit(
+                    UiEvent.ShowToast(message = e.message!!)
+                )
             }
         }
     }
@@ -64,6 +91,12 @@ class InventoryViewModel@Inject constructor(
                 e.printStackTrace()
                 _eventFlow.emit(
                     UiEvent.ShowToast(message = e.message!!)
+                )
+            }catch (e: SQLException){
+                e.printStackTrace()
+                _eventFlow.emit(
+                    UiEvent.ShowToast(message =  applicationContext.
+                    resources.getString(R.string.alert_sale_inventory))
                 )
             }
         }
@@ -92,8 +125,10 @@ class InventoryViewModel@Inject constructor(
             }catch(e: Exception){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message =
-                    applicationContext.resources.getString(R.string.alert_delete_inventory))
+                    UiEvent.ShowToast(
+                        message =
+                        applicationContext.resources.getString(R.string.alert_delete_inventory)
+                    )
                 )
             }
         }
@@ -113,6 +148,7 @@ class InventoryViewModel@Inject constructor(
         object SaveInventory: UiEvent()
         object UpdateInventory: UiEvent()
         object DeleteInventory: UiEvent()
+        object SaleInventory: UiEvent()
     }
     private fun getInventory(){
         getInventoryJob?.cancel()
@@ -124,4 +160,15 @@ class InventoryViewModel@Inject constructor(
             }
             .launchIn(viewModelScope)
     }
+    private fun getHistory(){
+        getHistoryJob?.cancel()
+        getHistoryJob = inventoryUseCases.getHistory()
+            .onEach {
+                _state.value = state.value.copy(
+                    history = it
+                )
+            }
+            .launchIn(viewModelScope)
+    }
+
 }

@@ -8,7 +8,7 @@ val Purple700 = Color(0xFF3700B3)
 val Teal200 = Color(0xFF03DAC5)
 
 
-val test = Color(0xFF03A9F4)
+val test = Color(0xFFFFE500)
 
 //custom_blue_pallet
 val custom_blue_0 = Color(0xFF012A4A)

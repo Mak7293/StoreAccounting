@@ -477,7 +477,7 @@ fun SaleHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="تعداد کالا: ${item.number}",
+                        text ="تعداد کالا فروخته شده: ${item.number}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -495,7 +495,7 @@ fun SaleHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="سود حاصل از قروش کالا: ${item.sellPrice}",
+                        text ="سود حاصل از قروش کالا: ${(item.sellPrice.toInt() - item.buyPrice.toInt()) * item.number.toInt()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -544,7 +544,7 @@ fun SaleHistoryItem(
         }
     }
 }
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
 fun TestPreview() {
     val history = History(

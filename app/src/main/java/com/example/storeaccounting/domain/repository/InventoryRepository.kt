@@ -20,4 +20,6 @@ interface InventoryRepository {
     suspend fun insertHistory(history: History)
 
     suspend fun deleteHistory(history: History)
+
+    fun fetchAllHistory(): Flow<List<History>>
 }
