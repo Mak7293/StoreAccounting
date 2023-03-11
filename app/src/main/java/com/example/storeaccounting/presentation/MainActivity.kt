@@ -24,18 +24,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.util.TransactionState
 import com.example.storeaccounting.presentation.General.General
 import com.example.storeaccounting.presentation.component.BottomNavigation
 import com.example.storeaccounting.presentation.inventory.AddEditInventoryBottomSheetContent
 import com.example.storeaccounting.presentation.inventory.Inventory
+import com.example.storeaccounting.presentation.sale.ResultBottomSheetContent
 import com.example.storeaccounting.presentation.sale.Sale
 import com.example.storeaccounting.presentation.sale.SaleBottomSheetContent
 import com.example.storeaccounting.presentation.setting.Setting
@@ -43,8 +44,11 @@ import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
 import com.example.storeaccounting.presentation.view_model.ViewModel
 import com.example.storeaccounting.ui.theme.StoreAccountingTheme
+import com.razaghimahdi.compose_persian_date.core.rememberPersianDataPicker
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -106,7 +110,6 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                 }else{
                     window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE)
                 }
-
             }
         }
         else   ->   {
@@ -149,6 +152,9 @@ fun Main(
     var inventory by remember {
         mutableStateOf<InventoryEntity?>(null)
     }
+    var editSaleHistory by remember {
+        mutableStateOf<History?>(null)
+    }
     val sheetState = rememberBottomSheetState(
         initialValue = BottomSheetValue.Collapsed,
         animationSpec = tween(
@@ -164,12 +170,15 @@ fun Main(
             sheetState.collapse()
         }
     }
-
-    LaunchedEffect(key1 = true){
+    var key by remember {
+        mutableStateOf(true)
+    }
+    LaunchedEffect(key1 = key){
         viewModel.eventFlow.collectLatest { event  ->
             when(event){
                 is  ViewModel.UiEvent.ShowToast   ->   {
                     Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
+                    key = !key
 
                 }
                 is  ViewModel.UiEvent.SaveInventory  ->  {
@@ -180,9 +189,11 @@ fun Main(
                             sheetState.collapse()
                         }
                     }
+                    key = !key
                 }
                 is ViewModel.UiEvent.DeleteInventory   -> {
                     Toast.makeText(context,"کالا با موفقیت حذف شد.",Toast.LENGTH_SHORT).show()
+                    key = !key
                 }
                 is ViewModel.UiEvent.UpdateInventory   -> {
                     scope.launch {
@@ -192,9 +203,25 @@ fun Main(
                             sheetState.collapse()
                         }
                     }
+                    key = !key
                 }
                 is ViewModel.UiEvent.SaleInventory   ->   {
                     Toast.makeText(context,"فروش کالا با موفقیت ثبت شد.",Toast.LENGTH_SHORT).show()
+                }
+                is ViewModel.UiEvent.UpdateSaleHistory  ->  {
+                    Toast.makeText(context,"تراکنش فروش با موقیت به روز رسانی شد.",Toast.LENGTH_SHORT).show()
+                    scope.launch {
+                        if(sheetState.isCollapsed) {
+                            sheetState.expand()
+                        } else {
+                            sheetState.collapse()
+                        }
+                    }
+                    key = !key
+                }
+                is ViewModel.UiEvent.DeleteSaleHistory   ->   {
+                    Toast.makeText(context,"تراکنش فروش با موقیت به حذف شد.",Toast.LENGTH_SHORT).show()
+                    key = !key
                 }
             }
         }
@@ -231,7 +258,7 @@ fun Main(
                 }
                 FabRoute.SaleFab.route   ->   {
                     SaleBottomSheetContent(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .height(500.dp)
                             .background(
@@ -241,7 +268,8 @@ fun Main(
                                         MaterialTheme.colors.secondary
                                     )
                                 )
-                            ).border(
+                            )
+                            .border(
                                 width = 1.dp,
                                 color = if (isSystemInDarkTheme()) Color.DarkGray else Color.Black,
                                 shape = RoundedCornerShape(
@@ -249,7 +277,8 @@ fun Main(
                                     topEnd = 35.dp
                                 ),
                             ),
-                        saleList = viewModel.state.value.inventory
+                        saleList = viewModel.state.value.inventory,
+                        oldHistory = null
                     ){
                         scope.launch {
                             if(sheetState.isCollapsed) {
@@ -260,6 +289,84 @@ fun Main(
                             }
                         }
                     }
+                }
+                FabRoute.EditSaleFab.route   ->   {
+                    Log.d("history!!", editSaleHistory.toString())
+                    SaleBottomSheetContent(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(500.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        MaterialTheme.colors.onSurface,
+                                        MaterialTheme.colors.secondary
+                                    )
+                                )
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (isSystemInDarkTheme()) Color.DarkGray else Color.Black,
+                                shape = RoundedCornerShape(
+                                    topStart = 35.dp,
+                                    topEnd = 35.dp
+                                ),
+                            ),
+                        saleList = viewModel.state.value.inventory,
+                        oldHistory = editSaleHistory
+                    ){
+
+                        scope.launch {
+                            if(sheetState.isCollapsed) {
+                                sheetState.expand()
+
+                            } else {
+                                sheetState.collapse()
+                            }
+                        }
+                    }
+                }
+                FabRoute.ResultFab.route   ->  {
+                    ResultBottomSheetContent(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(400.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        MaterialTheme.colors.onSurface,
+                                        MaterialTheme.colors.secondary
+                                    )
+                                )
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (isSystemInDarkTheme()) Color.DarkGray else Color.Black,
+                                shape = RoundedCornerShape(
+                                    topStart = 35.dp,
+                                    topEnd = 35.dp
+                                ),
+                            ),
+                        controller = rememberPersianDataPicker(),
+                        onCancel = {
+                            scope.launch {
+                                if(sheetState.isCollapsed){
+                                    sheetState.expand()
+                                }else{
+                                    sheetState.collapse()
+                                }
+                            }
+                        },
+                        onResult = {
+                            scope.launch {
+                                if(sheetState.isCollapsed){
+                                    sheetState.expand()
+                                }else{
+                                    sheetState.collapse()
+                                }
+                            }
+                        }
+                    )
                 }
                 else -> {
                     Column(modifier = Modifier.fillMaxSize()) {
@@ -294,7 +401,6 @@ fun Main(
                     SetStatusBarTheme(window,it.destination.route!!)
                 }
                 composable(route = NavigationRoute.Inventory.route){
-
                     Inventory(){ route , _invnetory   ->
 
                         fabState.value = route.route
@@ -311,8 +417,19 @@ fun Main(
                     SetStatusBarTheme(window,it.destination.route!!)
                 }
                 composable(route = NavigationRoute.Sale.route){
-
-                    Sale(){
+                    Sale(
+                        onEdit = {   History, FabRoute  ->
+                            fabState.value = FabRoute.route
+                            editSaleHistory = History
+                            scope.launch {
+                                if(sheetState.isCollapsed) {
+                                    sheetState.expand()
+                                } else {
+                                    sheetState.collapse()
+                                }
+                            }
+                        }
+                    ){
                         fabState.value = it.route
                         scope.launch {
                             if(sheetState.isCollapsed) {

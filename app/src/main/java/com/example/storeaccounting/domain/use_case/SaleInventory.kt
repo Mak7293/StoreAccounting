@@ -11,32 +11,21 @@ import com.example.storeaccounting.domain.util.TransactionState
 class SaleInventory(private val repository: InventoryRepository, private val resource: Resources) {
 
     suspend operator fun invoke (
-        newInventoryEntity: InventoryEntity,previousInventoryEntity: InventoryEntity){
-        if(newInventoryEntity.number.isBlank()){
+        inventoryEntity: InventoryEntity, 
+        history: History
+    ){
+        if(inventoryEntity.number.isBlank()){
             throw InvalidTransactionException(resource.getString(R.string.blank_number_exception))
-        }else if(checkNumberIsNotNegative(newInventoryEntity.number)){
+        }else if(checkNumberIsNotNegative(inventoryEntity.number)){
             throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
-        }else if (checkNumberIsDigit(newInventoryEntity.number)){
+        }else if (checkNumberIsDigit(inventoryEntity.number)){
             throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
-        }else if (newInventoryEntity.number.toInt() == 0){
+        }else if (history.saleNumber.toInt() == 0){
             throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
-        }else if (newInventoryEntity.number.toInt() > previousInventoryEntity.number.toInt()){
+        }else if (inventoryEntity.number.toInt() < 0){
             throw InvalidTransactionException(resource.getString(R.string.sale_number_exception))
         }
-        val finalInventoryEntity = newInventoryEntity.copy(
-            number = (previousInventoryEntity.number.toInt() - newInventoryEntity.number.toInt()).toString()
-        )
-        val history = History(
-            createdTimeStamp = newInventoryEntity.createdTimeStamp,
-            transaction = TransactionState.Sale.state,
-            title = newInventoryEntity.title,
-            number = newInventoryEntity.number,
-            buyPrice = newInventoryEntity.buyPrice,
-            sellPrice = newInventoryEntity.sellPrice,
-            date = newInventoryEntity.date,
-            timeStamp = newInventoryEntity.timeStamp
-        )
-        repository.updateInventory(finalInventoryEntity)
+        repository.updateInventory(inventoryEntity)
         repository.insertHistory(history)
 
     }

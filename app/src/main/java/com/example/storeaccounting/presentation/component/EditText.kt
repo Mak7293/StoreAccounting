@@ -28,14 +28,12 @@ fun EditText(
     _text: String,
     onText:(String) -> Unit,
 ){
-    Log.d("edit",_text)
     var text by remember {
         mutableStateOf(_text)
     }
     var isHintDisplayed by remember {
         mutableStateOf(text == "")
     }
-    Log.d("edit1",text)
 
     LaunchedEffect(key1 = _text){
         if (_text == ""){

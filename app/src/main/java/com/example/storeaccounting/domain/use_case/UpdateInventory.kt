@@ -45,11 +45,12 @@ class UpdateInventory(private val repository: InventoryRepository,private val re
             createdTimeStamp = inventoryEntity.createdTimeStamp ,
             transaction = TransactionState.Edit.state,
             title = inventoryEntity.title,
-            number = inventoryEntity.number,
+            saleNumber = "0",
             buyPrice = inventoryEntity.buyPrice,
             sellPrice = inventoryEntity.sellPrice,
             timeStamp = inventoryEntity.timeStamp,
-            date = inventoryEntity.date
+            date = inventoryEntity.date,
+            remainingInventory = inventoryEntity.number.toInt()
         )
         repository.insertHistory(history)
         repository.updateInventory(inventoryEntity)

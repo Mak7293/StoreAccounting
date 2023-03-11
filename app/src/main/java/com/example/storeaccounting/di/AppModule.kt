@@ -42,7 +42,9 @@ object AppModule {
             updateInventory = UpdateInventory(repository,app.resources),
             getHistoryListForSpecificInventory = GetHistoryListForSpecificInventory(repository),
             getHistory = GetHistory(repository),
-            saleInventory = SaleInventory(repository,app.resources)
+            saleInventory = SaleInventory(repository,app.resources),
+            updateSaleHistory = UpdateSaleHistory(repository,app.resources),
+            deleteSaleHistory = DeleteSaleHistory(repository)
         )
     }
 

@@ -10,6 +10,7 @@ import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
+import com.example.storeaccounting.domain.model.InventoryWithHistory
 import com.example.storeaccounting.domain.use_case.UseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,9 +20,10 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import saman.zamani.persiandate.PersianDate
 import javax.inject.Inject
+import com.example.storeaccounting.presentation.util.Constants.FROM
+import com.example.storeaccounting.presentation.util.Constants.UNTIL
 
 @HiltViewModel
 class ViewModel@Inject constructor(
@@ -32,6 +34,10 @@ class ViewModel@Inject constructor(
     private val _state = mutableStateOf<ViewModelState>(ViewModelState())
     val state: State<ViewModelState> = _state
 
+    val filterDate = mutableStateOf<MutableMap<String,Long>>(
+        mutableMapOf(FROM to 0,UNTIL to 0)
+    )
+
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
@@ -40,7 +46,7 @@ class ViewModel@Inject constructor(
 
     init {
         getInventory()
-        getHistory()
+        getAllHistory()
     }
     fun onEvent(event: Event){
         when(event){
@@ -54,20 +60,113 @@ class ViewModel@Inject constructor(
                 updateInventory(event.inventoryEntity)
             }
             is Event.SaleInventory  ->  {
-                saleInventory(event.newInventoryEntity,event.previousInventory)
+                saleInventory(event.inventoryEntity,event.history)
+            }
+            is Event.UpdateSaleTransaction  ->  {
+                updateSaleHistory(
+                    inventoryEntity = event.inventoryEntity,
+                    newHistory = event.newHistory,
+                    oldHistory = event.oldHistory
+                )
+            }
+            is Event.DeleteSaleHistory  ->   {
+                deleteSaleHistory(event.history)
+            }
+        }
+    }
+    fun graphHistoryList(
+        from: Long = filterDate.value[FROM]!!,
+        until: Long = filterDate.value[UNTIL]!!
+    ): List<History>{
+        var history: List<History> = listOf()
+        if (until == 0L || from == 0L){
+            val untilTimeStamp = System.currentTimeMillis()
+            val fromTimeStamp = System.currentTimeMillis() - (10*24*60*60*1000)
+            history = _state.value.history.filter {
+                it.timeStamp > fromTimeStamp || it.timeStamp < untilTimeStamp
+            }
+        }else if (until != 0L && from != 0L){
+            history = _state.value.history.filter {
+                it.timeStamp > from || it.timeStamp < until
+            }
+        }
+        return history
+    }
+    fun mapSaleProfitByDay(list: List<History>):MutableMap<Int,Float>{
+        val result: MutableMap<Int,Float> = mutableMapOf()
+        var iDate = ""
+        var totalProfitInDay: Float = 0.0f
+        var day: Int = 0
+        list.forEach {
+            if(it.date != iDate){
+                iDate = it.date
+                result.put(key = day,value =totalProfitInDay)
+                totalProfitInDay = 0.0f
+                day++
+            }
+            if (it.date == iDate){
+                totalProfitInDay += (it.sellPrice.toLong() * it.saleNumber.toLong())
+            }
+        }
+        result.remove(0)
+        return result
+    }
+    private fun deleteSaleHistory(history: History){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                inventoryUseCases.deleteSaleHistory(history)
+                _eventFlow.emit(
+                    UiEvent.DeleteSaleHistory
+                )
+            }catch (e: SQLException){
+                e.printStackTrace()
+                _eventFlow.emit(
+                    UiEvent.ShowToast(message =  applicationContext.
+                    resources.getString(R.string.alert_delete_sale_inventory))
+                )
+            }
+        }
+    }
+    private fun updateSaleHistory(
+        inventoryEntity: InventoryEntity,
+        newHistory: History,
+        oldHistory: History
+    ){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                inventoryUseCases.updateSaleHistory(
+                    inventoryEntity = inventoryEntity,
+                    newHistory = newHistory,
+                    oldHistory = oldHistory
+                )
+                _eventFlow.emit(
+                    UiEvent.UpdateSaleHistory
+                )
+            }catch (e: InvalidTransactionException){
+                e.printStackTrace()
+                _eventFlow.emit(
+                    UiEvent.ShowToast(message = e.message!!)
+                )
+            }catch (e: SQLException){
+                e.printStackTrace()
+                _eventFlow.emit(
+                    UiEvent.ShowToast(message =  applicationContext.
+                    resources.getString(R.string.alert_update_sale_inventory))
+                )
             }
         }
     }
 
     private fun saleInventory(
-        newInventoryEntity: InventoryEntity,
-        previousInventoryEntity: InventoryEntity){
-
+        inventoryEntity: InventoryEntity,
+        history: History
+    ){
         viewModelScope.launch(Dispatchers.IO){
             try{
                 inventoryUseCases.saleInventory(
-                    newInventoryEntity = newInventoryEntity,
-                    previousInventoryEntity = previousInventoryEntity)
+                    inventoryEntity = inventoryEntity,
+                    history = history
+                )
                 _eventFlow.emit(
                     UiEvent.SaveInventory
                 )
@@ -136,12 +235,9 @@ class ViewModel@Inject constructor(
     fun getPersianDate(): PersianDate{
         return PersianDate()
     }
-    fun getHistoryList(createdTimeStamp: Long): List<History> {
-        val list: List<History>
-        runBlocking {
-            list = inventoryUseCases.getHistoryListForSpecificInventory(createdTimeStamp).history
-        }
-        return list
+
+    suspend fun getHistoryByInventory(createdTimeStamp: Long):InventoryWithHistory{
+        return inventoryUseCases.getHistoryListForSpecificInventory(createdTimeStamp)
     }
     sealed class UiEvent{
         data class ShowToast(val message: String): UiEvent()
@@ -149,6 +245,8 @@ class ViewModel@Inject constructor(
         object UpdateInventory: UiEvent()
         object DeleteInventory: UiEvent()
         object SaleInventory: UiEvent()
+        object UpdateSaleHistory: UiEvent()
+        object DeleteSaleHistory: UiEvent()
     }
     private fun getInventory(){
         getInventoryJob?.cancel()
@@ -160,7 +258,7 @@ class ViewModel@Inject constructor(
             }
             .launchIn(viewModelScope)
     }
-    private fun getHistory(){
+    private fun getAllHistory(){
         getHistoryJob?.cancel()
         getHistoryJob = inventoryUseCases.getHistory()
             .onEach {

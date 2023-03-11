@@ -25,8 +25,8 @@ class InventoryRepositoryImp(private val dao: InventoryDao): InventoryRepository
         return dao.fetchAllInventory()
     }
 
-    override suspend fun getHistoriesByInventoryTimeStamp(id: Long): InventoryWithHistory {
-        return dao.getHistoriesByInventoryTimeStamp(id)
+    override suspend fun getHistoriesByInventoryTimeStamp(timeStamp: Long): InventoryWithHistory {
+        return dao.getHistoriesByInventoryTimeStamp(timeStamp)
     }
 
     override suspend fun insertHistory(history: History) {
@@ -35,6 +35,10 @@ class InventoryRepositoryImp(private val dao: InventoryDao): InventoryRepository
 
     override suspend fun deleteHistory(history: History) {
         dao.deleteHistory(history)
+    }
+
+    override suspend fun updateHistory(history: History) {
+        dao.updateHistory(history)
     }
 
     override fun fetchAllHistory(): Flow<List<History>> {

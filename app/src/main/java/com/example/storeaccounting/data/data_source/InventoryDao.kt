@@ -25,10 +25,13 @@ interface InventoryDao {
     @Update
     suspend fun updateInventory(inventoryEntity: InventoryEntity)
 
+    @Update
+    suspend fun updateHistory(history: History)
+
     @Query("SELECT * FROM inventory_entity_table ORDER BY createdTimeStamp DESC")
     fun fetchAllInventory(): Flow<List<InventoryEntity>>
 
-    @Query("SELECT * FROM history_table ORDER BY createdTimeStamp DESC ")
+    @Query("SELECT * FROM history_table ORDER BY timeStamp DESC ")
     fun fetchAllHistory(): Flow<List<History>>
 
     @Transaction

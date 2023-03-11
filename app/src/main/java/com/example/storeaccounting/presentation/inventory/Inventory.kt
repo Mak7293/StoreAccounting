@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.presentation.component.CustomDeleteDialog
 import com.example.storeaccounting.presentation.component.CustomHistoryDialog
@@ -38,8 +39,6 @@ import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
 import saman.zamani.persiandate.PersianDateFormat
 
-
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Inventory(
     context: Context = LocalContext.current,
@@ -62,7 +61,7 @@ fun Inventory(
             }
         },
         scaffoldState = scaffoldState
-    ) {
+    ){
         InventoryContent(
             modifier = Modifier
                 .fillMaxSize()
@@ -116,13 +115,19 @@ fun InventoryContent(
     }
     if(showHistoryDialog.value){
         CustomHistoryDialog(
-            modifier = Modifier.height(600.dp).width(400.dp),
-            historyList = viewModel.getHistoryList(inventory.value.createdTimeStamp) ,
+            modifier = Modifier
+                .height(600.dp)
+                .width(400.dp),
+            historyList = produceState<List<History>>(initialValue = emptyList()){
+                       value = viewModel.getHistoryByInventory(inventory.value.createdTimeStamp)
+                           .history.sortedByDescending {it.timeStamp }
+            }.value ,
             setShowDialog = {
                 showHistoryDialog.value = it
             }
         )
     }
+
     if (showDeleteDialog.value) {
         CustomDeleteDialog(
             modifier = Modifier
@@ -212,7 +217,6 @@ fun InventoryList(
         }
     }
 }
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AddEditInventoryBottomSheetContent(
     modifier: Modifier = Modifier,
@@ -222,17 +226,38 @@ fun AddEditInventoryBottomSheetContent(
 ) {
     val currentDate = PersianDateFormat("Y/m/d")
         .format(viewModel.getPersianDate()).toString()
+
     var title by remember {
-        mutableStateOf(inventory?.title ?: "")
+        mutableStateOf("")
     }
     var number by remember {
-        mutableStateOf(inventory?.number ?: "")
+        mutableStateOf("")
     }
     var sellPrice by remember {
-        mutableStateOf(inventory?.sellPrice ?: "")
+        mutableStateOf("")
     }
     var buyPrice by remember {
-        mutableStateOf(inventory?.buyPrice ?: "")
+        mutableStateOf("")
+    }
+    LaunchedEffect(
+        inventory?.title,
+        inventory?.number,
+        inventory?.buyPrice,
+        inventory?.sellPrice
+    ){
+        if(title != inventory?.title ){
+            title = inventory?.title ?: ""
+        }
+        if(number != inventory?.number ){
+            number = inventory?.number ?: ""
+        }
+        if(sellPrice != inventory?.sellPrice ){
+            sellPrice = inventory?.sellPrice ?: ""
+        }
+        if(buyPrice != inventory?.buyPrice ){
+            buyPrice = inventory?.buyPrice ?: ""
+        }
+        Log.d("title", title)
     }
     Box(
         modifier = modifier,
@@ -299,7 +324,8 @@ fun AddEditInventoryBottomSheetContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
-                        contentDescription = "date_icon")
+                        contentDescription = "date_icon",
+                        tint = MaterialTheme.colors.primaryVariant)
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -373,7 +399,6 @@ fun AddEditInventoryBottomSheetContent(
         }
     }
 }
-
 @Composable
 fun InventoryItem(
     modifier: Modifier = Modifier,
@@ -450,7 +475,7 @@ fun InventoryItem(
                         modifier = modifier
                             .border(
                                 width = 1.dp,
-                                color = Color.LightGray,
+                                color = MaterialTheme.colors.onSurface,
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .background(

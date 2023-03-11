@@ -7,5 +7,7 @@ data class UseCases (
     val updateInventory: UpdateInventory,
     val getHistoryListForSpecificInventory: GetHistoryListForSpecificInventory,
     val getHistory: GetHistory,
-    val saleInventory: SaleInventory
+    val saleInventory: SaleInventory,
+    val updateSaleHistory: UpdateSaleHistory,
+    val deleteSaleHistory: DeleteSaleHistory
 )

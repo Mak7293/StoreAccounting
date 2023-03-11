@@ -43,9 +43,10 @@ class AddInventory(private val repository: InventoryRepository, private val reso
         repository.insertInventory(inventoryEntity)
         val history = History(
             createdTimeStamp = inventoryEntity.timeStamp,
+            remainingInventory = inventoryEntity.number.toInt(),
             transaction = TransactionState.Create.state,
             title = inventoryEntity.title,
-            number = inventoryEntity.number,
+            saleNumber = "0",
             sellPrice = inventoryEntity.sellPrice,
             buyPrice = inventoryEntity.buyPrice,
             date = inventoryEntity.date,

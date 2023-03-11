@@ -1,5 +1,6 @@
 package com.example.storeaccounting.presentation.component
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -16,7 +17,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -141,6 +141,7 @@ fun CustomHistoryDialog(
     historyList: List<History>,
     setShowDialog: (Boolean) -> Unit
 ){
+    Log.d("list",historyList.toString())
     RightToLeftLayout {
         Dialog(
             onDismissRequest = {
@@ -170,22 +171,23 @@ fun CustomHistoryDialog(
                                 CreateHistoryItem(
                                     item = historyList[it] ,
                                     verticalPadding = 10.dp,
-                                    contentPadding = 5.dp
+                                    contentPadding = 8.dp
                                 )
+
                             }
                             TransactionState.Edit.state -> {
                                 EditHistoryItem(
                                     item = historyList[it],
-                                    _item = historyList[it-1],
+                                    _item = historyList[it+1],
                                     verticalPadding = 10.dp ,
-                                    contentPadding = 5.dp
+                                    contentPadding = 8.dp
                                 )
                             }
                             TransactionState.Sale.state -> {
                                 SaleHistoryItem(
                                     item = historyList[it],
                                     verticalPadding = 10.dp,
-                                    contentPadding = 5.dp
+                                    contentPadding = 8.dp
                                 )
                             }
                         }
@@ -231,7 +233,7 @@ fun CreateHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="تعداد کالا: ${item.number}",
+                        text ="تعداد کالا: ${item.remainingInventory}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -333,7 +335,7 @@ fun EditHistoryItem(
                         color = Color(0xFF006D04)
                     )
                     Text(
-                        text ="تعداد کالا: ${item.number}",
+                        text ="تعداد کالا: ${item.remainingInventory}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color(0xFF006D04)
@@ -376,7 +378,7 @@ fun EditHistoryItem(
                         color = Color.Red
                     )
                     Text(
-                        text ="تعداد کالا: ${_item.number}",
+                        text ="تعداد کالا: ${_item.remainingInventory}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Red
@@ -477,7 +479,13 @@ fun SaleHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="تعداد کالا فروخته شده: ${item.number}",
+                        text ="تعداد کالا فروخته شده: ${item.saleNumber}",
+                        fontFamily = persian_font_semi_bold,
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                    Text(
+                        text ="تعداد کالا باقی مانده: ${item.remainingInventory}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -495,7 +503,13 @@ fun SaleHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="سود حاصل از قروش کالا: ${(item.sellPrice.toInt() - item.buyPrice.toInt()) * item.number.toInt()}",
+                        text ="حاشیه سود کالا: ${item.sellPrice.toInt() - item.buyPrice.toInt()}",
+                        fontFamily = persian_font_semi_bold,
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                    Text(
+                        text ="سود حاصل از قروش کالا: ${(item.sellPrice.toInt() - item.buyPrice.toInt()) * item.saleNumber.toInt()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -549,6 +563,7 @@ fun SaleHistoryItem(
 fun TestPreview() {
     val history = History(
         id = 0,
+        remainingInventory = 5,
         createdTimeStamp = 3516516,
         transaction = TransactionState.Create.state,
         title = ";alksdf",
@@ -556,7 +571,7 @@ fun TestPreview() {
         date = ";laskdf",
         sellPrice = "54516",
         buyPrice = "5454656",
-        number = "541"
+        saleNumber = "541"
     )
     EditHistoryItem(item = history,_item = history, verticalPadding = 10.dp , contentPadding =  10.dp)
 }
