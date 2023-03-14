@@ -146,6 +146,7 @@ fun Main(
     context: Context = LocalContext.current,
     window: Window
 ) {
+    Log.d("MainRecomposition","@@@@@@@@")
     val fabState = remember {
         mutableStateOf<String>("")
     }
@@ -161,6 +162,7 @@ fun Main(
             durationMillis = 1000
         )
     )
+
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
@@ -170,15 +172,11 @@ fun Main(
             sheetState.collapse()
         }
     }
-    var key by remember {
-        mutableStateOf(true)
-    }
-    LaunchedEffect(key1 = key){
+    LaunchedEffect(key1 = true){
         viewModel.eventFlow.collectLatest { event  ->
             when(event){
                 is  ViewModel.UiEvent.ShowToast   ->   {
                     Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
-                    key = !key
 
                 }
                 is  ViewModel.UiEvent.SaveInventory  ->  {
@@ -189,11 +187,9 @@ fun Main(
                             sheetState.collapse()
                         }
                     }
-                    key = !key
                 }
                 is ViewModel.UiEvent.DeleteInventory   -> {
                     Toast.makeText(context,"کالا با موفقیت حذف شد.",Toast.LENGTH_SHORT).show()
-                    key = !key
                 }
                 is ViewModel.UiEvent.UpdateInventory   -> {
                     scope.launch {
@@ -203,10 +199,16 @@ fun Main(
                             sheetState.collapse()
                         }
                     }
-                    key = !key
                 }
                 is ViewModel.UiEvent.SaleInventory   ->   {
                     Toast.makeText(context,"فروش کالا با موفقیت ثبت شد.",Toast.LENGTH_SHORT).show()
+                    scope.launch {
+                        if(sheetState.isCollapsed) {
+                            sheetState.expand()
+                        } else {
+                            sheetState.collapse()
+                        }
+                    }
                 }
                 is ViewModel.UiEvent.UpdateSaleHistory  ->  {
                     Toast.makeText(context,"تراکنش فروش با موقیت به روز رسانی شد.",Toast.LENGTH_SHORT).show()
@@ -217,12 +219,11 @@ fun Main(
                             sheetState.collapse()
                         }
                     }
-                    key = !key
                 }
                 is ViewModel.UiEvent.DeleteSaleHistory   ->   {
                     Toast.makeText(context,"تراکنش فروش با موقیت به حذف شد.",Toast.LENGTH_SHORT).show()
-                    key = !key
                 }
+                else -> {}
             }
         }
     }
@@ -418,6 +419,7 @@ fun Main(
                 }
                 composable(route = NavigationRoute.Sale.route){
                     Sale(
+                        viewModel = viewModel,
                         onEdit = {   History, FabRoute  ->
                             fabState.value = FabRoute.route
                             editSaleHistory = History

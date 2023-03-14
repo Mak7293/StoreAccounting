@@ -2,6 +2,7 @@ package com.example.storeaccounting.presentation.view_model
 
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
+import saman.zamani.persiandate.PersianDate
 
 sealed class Event {
     data class InsertInventory(val inventoryEntity:InventoryEntity): Event()
@@ -12,4 +13,5 @@ sealed class Event {
     data class UpdateSaleTransaction(val inventoryEntity: InventoryEntity,
                                      val newHistory: History, val oldHistory: History): Event()
     data class DeleteSaleHistory(val history: History): Event()
+    data class FilterSaleHistory(val map: Map<String,PersianDate>?): Event()
 }

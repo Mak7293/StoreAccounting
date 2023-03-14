@@ -5,5 +5,7 @@ import com.example.storeaccounting.domain.model.InventoryEntity
 
 data class ViewModelState (
     val inventory: List<InventoryEntity> = emptyList(),
-    val history: List<History> = emptyList()
+    val history: List<History> = emptyList(),
+    var filteredInventory: List<InventoryEntity> = emptyList(),
+    var filteredHistory: List<History> = emptyList()
 )

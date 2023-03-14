@@ -7,7 +7,7 @@ class DeleteSaleHistory(private val repository: InventoryRepository) {
 
     suspend operator fun invoke(history: History){
         val rollbackInventory = repository.getHistoriesByInventoryTimeStamp(history.createdTimeStamp)
-            .inventory.copy(number = (history.remainingInventory + history.saleNumber.toInt()).toString() )
+            .inventory.copy(number = (history.remainingInventory + history.saleNumber.toInt()).toString())
         repository.updateInventory(rollbackInventory)
         repository.deleteHistory(history)
     }

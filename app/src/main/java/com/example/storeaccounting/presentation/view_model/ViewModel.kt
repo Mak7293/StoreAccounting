@@ -2,10 +2,11 @@ package com.example.storeaccounting.presentation.view_model
 
 import android.app.Application
 import android.database.SQLException
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
+import android.util.Log
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
 import com.example.storeaccounting.domain.model.History
@@ -15,15 +16,12 @@ import com.example.storeaccounting.domain.use_case.UseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import saman.zamani.persiandate.PersianDate
 import javax.inject.Inject
 import com.example.storeaccounting.presentation.util.Constants.FROM
 import com.example.storeaccounting.presentation.util.Constants.UNTIL
+import kotlinx.coroutines.flow.*
 
 @HiltViewModel
 class ViewModel@Inject constructor(
@@ -34,15 +32,15 @@ class ViewModel@Inject constructor(
     private val _state = mutableStateOf<ViewModelState>(ViewModelState())
     val state: State<ViewModelState> = _state
 
-    val filterDate = mutableStateOf<MutableMap<String,Long>>(
-        mutableMapOf(FROM to 0,UNTIL to 0)
-    )
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var getInventoryJob: Job? = null
     private var getHistoryJob: Job? = null
+
+    var filterState = mutableStateOf(false)
+    var filterRange: Map<String,PersianDate>? = null
 
     init {
         getInventory()
@@ -72,40 +70,50 @@ class ViewModel@Inject constructor(
             is Event.DeleteSaleHistory  ->   {
                 deleteSaleHistory(event.history)
             }
+            is Event.FilterSaleHistory  ->   {
+                filteredHistory(event.map)
+            }
         }
     }
-    fun graphHistoryList(
-        from: Long = filterDate.value[FROM]!!,
-        until: Long = filterDate.value[UNTIL]!!
-    ): List<History>{
+    private fun filteredHistory(dateRange: Map<String,PersianDate> ?){
+        filterRange = dateRange
+        val from: Long? = dateRange?.get(FROM)?.toDate()?.time
+        val until: Long? = dateRange?.get(UNTIL)?.toDate()?.time
+        if (from != null && until != null){
+            _state.value.filteredHistory = _state.value.history.filter {
+                it.timeStamp in from until until ||
+                        it.timeStamp in until until from
+            }
+        }else{
+            _state.value.filteredHistory = _state.value.history
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            _eventFlow.emit(UiEvent.FilteredList)
+        }
+        filterState.value = true
+
+    }
+    fun graphHistoryList(from: Long, until: Long): List<History>{
         var history: List<History> = listOf()
-        if (until == 0L || from == 0L){
-            val untilTimeStamp = System.currentTimeMillis()
-            val fromTimeStamp = System.currentTimeMillis() - (10*24*60*60*1000)
-            history = _state.value.history.filter {
-                it.timeStamp > fromTimeStamp || it.timeStamp < untilTimeStamp
-            }
-        }else if (until != 0L && from != 0L){
-            history = _state.value.history.filter {
-                it.timeStamp > from || it.timeStamp < until
-            }
+        history = _state.value.history.filter {
+            it.timeStamp in from until  until
         }
         return history
     }
-    fun mapSaleProfitByDay(list: List<History>):MutableMap<Int,Float>{
-        val result: MutableMap<Int,Float> = mutableMapOf()
+    fun mapSaleProfitByDay(list: List<History>):MutableMap<Int,Number>{
+        val result: MutableMap<Int,Number> = mutableMapOf()
         var iDate = ""
         var totalProfitInDay: Float = 0.0f
         var day: Int = 0
         list.forEach {
             if(it.date != iDate){
                 iDate = it.date
-                result.put(key = day,value =totalProfitInDay)
+                result.put(key = day,value = totalProfitInDay)
                 totalProfitInDay = 0.0f
                 day++
             }
             if (it.date == iDate){
-                totalProfitInDay += (it.sellPrice.toLong() * it.saleNumber.toLong())
+                totalProfitInDay += ((it.sellPrice.toLong() - it.buyPrice.toLong()) * it.saleNumber.toLong())
             }
         }
         result.remove(0)
@@ -168,7 +176,7 @@ class ViewModel@Inject constructor(
                     history = history
                 )
                 _eventFlow.emit(
-                    UiEvent.SaveInventory
+                    UiEvent.SaleInventory
                 )
             }catch (e: InvalidTransactionException){
                 e.printStackTrace()
@@ -247,6 +255,7 @@ class ViewModel@Inject constructor(
         object SaleInventory: UiEvent()
         object UpdateSaleHistory: UiEvent()
         object DeleteSaleHistory: UiEvent()
+        object FilteredList: UiEvent()
     }
     private fun getInventory(){
         getInventoryJob?.cancel()
@@ -254,16 +263,19 @@ class ViewModel@Inject constructor(
             .onEach {
                 _state.value  = state.value.copy(
                     inventory = it,
+                    filteredInventory = it
                 )
             }
             .launchIn(viewModelScope)
+
     }
     private fun getAllHistory(){
         getHistoryJob?.cancel()
         getHistoryJob = inventoryUseCases.getHistory()
             .onEach {
                 _state.value = state.value.copy(
-                    history = it
+                    history = it,
+                    filteredHistory = it
                 )
             }
             .launchIn(viewModelScope)

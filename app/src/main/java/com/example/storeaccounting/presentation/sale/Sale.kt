@@ -47,24 +47,91 @@ import saman.zamani.persiandate.PersianDate
 import saman.zamani.persiandate.PersianDateFormat
 import com.example.storeaccounting.presentation.util.Constants.FROM
 import com.example.storeaccounting.presentation.util.Constants.MONTH
+import com.example.storeaccounting.presentation.util.Constants.TEN_DAYS_GRAPH
+import com.example.storeaccounting.presentation.util.Constants.THIRTY_DAYS_GRAPH
 import com.example.storeaccounting.presentation.util.Constants.UNTIL
 import com.example.storeaccounting.presentation.util.Constants.YEAR
+import com.patrykandpatrick.vico.compose.axis.axisGuidelineComponent
+import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
+import com.patrykandpatrick.vico.compose.axis.axisLineComponent
 import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
-import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
-import com.patrykandpatrick.vico.core.entry.entriesOf
+import com.patrykandpatrick.vico.compose.chart.line.lineSpec
+import com.patrykandpatrick.vico.core.DEF_THREAD_POOL_SIZE
+import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.entry.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.runBlocking
+import java.util.concurrent.Executors
 
 
 @Composable
 fun Sale(
-    viewModel: ViewModel = hiltViewModel(),
+    viewModel: ViewModel,
     onEdit: (History,FabRoute) -> Unit,
     onClick:(FabRoute)  -> Unit,
 ){
-    val saleHistoryList = viewModel.state.value.history.filter {
-        it.transaction == TransactionState.Sale.state
+    Log.d("SaleRecomposition","@@@@@@@@")
+
+    val saleHistoryList = remember(key1 = viewModel.state.value.filteredHistory) {
+        mutableStateOf(viewModel.state.value.filteredHistory.filter {
+            it.transaction == TransactionState.Sale.state
+        })
+    }
+    var graphState by remember {
+        mutableStateOf(TEN_DAYS_GRAPH)
+    }
+    val graphList = remember(key1 =  viewModel.state.value.history){
+        mutableStateOf<List<Number>>(
+            viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                from = System.currentTimeMillis()-(864000000),
+                until = System.currentTimeMillis()
+        )).values.toMutableList())
+    }
+
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event  ->
+            when(event){
+                is ViewModel.UiEvent.FilteredList   ->  {
+                    saleHistoryList.value = viewModel.state.value.filteredHistory
+                }
+                is ViewModel.UiEvent.SaleInventory  ->  {
+                    delay(500L)
+                    if(graphState == TEN_DAYS_GRAPH){
+                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                            from = System.currentTimeMillis()-(864000000),
+                            until = System.currentTimeMillis()
+                        )).values.toMutableList()
+                    }else if (graphState == THIRTY_DAYS_GRAPH){
+                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                            from = System.currentTimeMillis()-(2592000000),
+                            until = System.currentTimeMillis()
+                        )).values.toMutableList()
+                    }
+                }
+                is ViewModel.UiEvent.DeleteSaleHistory  ->  {
+                    delay(1000L)
+                    if(graphState == TEN_DAYS_GRAPH){
+                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                            from = System.currentTimeMillis()-(864000000),
+                            until = System.currentTimeMillis()
+                        )).values.toMutableList()
+                    }else if (graphState == THIRTY_DAYS_GRAPH){
+                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                            from = System.currentTimeMillis()-(2592000000),
+                            until = System.currentTimeMillis()
+                        )).values.toMutableList()
+                    }
+                }
+                else  ->  {
+
+                }
+            }
+        }
     }
     val scaffoldState = rememberScaffoldState()
     Scaffold(
@@ -91,7 +158,7 @@ fun Sale(
         ){
             Column(modifier = Modifier
                 .fillMaxWidth()
-                .height(height = 215.dp)
+                .height(height = 250.dp)
                 .padding(bottom = 5.dp)
                 .background(
                     brush = Brush.verticalGradient(
@@ -108,76 +175,191 @@ fun Sale(
                     )
                 )
             ){
+
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
+                    .padding(end = 10.dp)
                 ){
-
-                    //Log.d("history",viewModel.mapSaleProfitByDay(viewModel.graphHistoryList()).toString())
-                    val lineChart = lineChart()
-                    //val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(4f, 12f, 8f, 16f))
-                    val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(4f, 12f, 8f, 16f))
+                    val a = graphList.value.map { it }.toTypedArray()
+                    val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(*a))
                     Chart(
-                        chart = remember{lineChart},
-                        chartModelProducer = chartEntryModelProducer1,
-                        startAxis = startAxis(),
-                        bottomAxis = bottomAxis(),
+                        chart = lineChart(
+                            lines = listOf(lineSpec(
+                                lineColor = Color.Red
+                            ))
+                        ),
+                        chartModelProducer = chartEntryModelProducer1 ,
+                        startAxis = startAxis(
+                            axis = axisLineComponent(
+                                strokeWidth = 2.dp,
+                                strokeColor = MaterialTheme.colors.background,
+                            ),
+                            label = axisLabelComponent(
+                                color = MaterialTheme.colors.background,
+                                textSize = 14.sp,
+                            ),
+                            guideline = axisGuidelineComponent(
+                                strokeWidth = 1.dp,
+                                strokeColor = MaterialTheme.colors.onSurface,
+                            )
+                        ),
+                        bottomAxis = bottomAxis(
+                            axis = axisLineComponent(
+                                strokeWidth = 2.dp,
+                                strokeColor = MaterialTheme.colors.background,
+                            ),
+                            label = axisLabelComponent(
+                                color = MaterialTheme.colors.background,
+                                textSize = 14.sp,
+                                textAlign = android.graphics.Paint.Align.CENTER,
+                            ),
+                            guideline = axisGuidelineComponent(
+                                strokeWidth = 1.dp,
+                                strokeColor = MaterialTheme.colors.onSurface,
+                            ),
+                            valueFormatter = AxisValueFormatter { value, chartValues ->
+                                val a = if (value == 0.0f) "today" else "-"+value.toInt().toString()
+                                a
+                            }
+                        )
                     )
                 }
                 Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ){
-                    Button(
-                        onClick = {
-                             onClick(FabRoute.ResultFab)
-                        },
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color.White,
-                        ),
-                        border = BorderStroke(width = 2.dp, color = Color.Black)
+                    Column (
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Top
                     ) {
+                        Button(
+                            modifier = Modifier
+                                .width(180.dp)
+                                .height(35.dp),
+                            onClick = {
+                                if(viewModel.filterState.value){
+                                    viewModel.onEvent(Event.FilterSaleHistory(null))
+                                    viewModel.filterState.value = !viewModel.filterState.value
+                                }else{
+                                    onClick(FabRoute.ResultFab)
+                                }
+                            },
+                            shape = CircleShape,
+                            colors =  ButtonDefaults.buttonColors(
+                                backgroundColor = if(viewModel.filterState.value) Color.Red else Color.White,
+                            ),
+                            border = BorderStroke(width = 2.dp, color = Color.Black)
+                        ) {
+                            Text(
+                                textAlign = TextAlign.Center,
+                                text =if(viewModel.filterState.value) "نمایش تمام فروش ها" else "فیلتر کردن تاریخ فروش ها",
+                                color = Color.Black,
+                                fontFamily = persian_font_semi_bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        if (viewModel.filterState.value)
                         Text(
                             textAlign = TextAlign.Center,
-                            text = "فیلتر کردن فروش ها",
+                            text = "از ${PersianDateFormat("Y/m/d").format(viewModel.filterRange?.get(FROM))}" +
+                                    " تا ${PersianDateFormat("Y/m/d").format(viewModel.filterRange?.get(UNTIL))} ",
                             color = Color.Black,
                             fontFamily = persian_font_semi_bold,
-                            fontSize = 16.sp
+                            fontSize = 14.sp
                         )
                     }
-                    Text(
-                        modifier = Modifier,
-                        textAlign = TextAlign.Center,
-                        text = "نمودار فروش 10 روز گزشته",
-                        color = MaterialTheme.colors.onPrimary,
-                        fontFamily = persian_font_semi_bold,
-                        fontSize = 14.sp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceAround
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.5.dp,
+                                    shape = CircleShape,
+                                    color = if (graphState == TEN_DAYS_GRAPH) Color.Black else MaterialTheme.colors.onPrimary
+                                )
+                                .background(
+                                    shape = CircleShape,
+                                    color = if (graphState == TEN_DAYS_GRAPH) Color.Yellow else Color.Transparent
+                                )
+                                .padding(5.dp)
+                                .clickable {
+                                    if (graphState != TEN_DAYS_GRAPH) {
+                                        graphList.value = viewModel.mapSaleProfitByDay(
+                                            viewModel.graphHistoryList(
+                                                from = System.currentTimeMillis() - (864000000), // 10*24*60*60*1000
+                                                until = System.currentTimeMillis()
+                                            )
+                                        ).values.toMutableList()
+                                        graphState = TEN_DAYS_GRAPH
+                                    }
+                                },
+                            textAlign = TextAlign.Center,
+                            text = " نمودار فروش 10 روز گزشته",
+                            color = if (graphState == TEN_DAYS_GRAPH) Color.Black else MaterialTheme.colors.onPrimary,
+                            fontFamily = persian_font_semi_bold,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.5.dp,
+                                    shape = CircleShape,
+                                    color = if (graphState == THIRTY_DAYS_GRAPH) Color.Black else MaterialTheme.colors.onPrimary
+                                )
+                                .background(
+                                    shape = CircleShape,
+                                    color = if (graphState == THIRTY_DAYS_GRAPH) Color.Yellow else Color.Transparent
+                                )
+                                .padding(5.dp)
+                                .clickable {
+                                    if (graphState != THIRTY_DAYS_GRAPH) {
+                                        graphList.value = viewModel.mapSaleProfitByDay(
+                                            viewModel.graphHistoryList(
+                                                from = System.currentTimeMillis() - (2592000000),  // 30*24*60*60*1000
+                                                until = System.currentTimeMillis()
+                                            )
+                                        ).values.toMutableList()
+                                        graphState = THIRTY_DAYS_GRAPH
+                                    }
+                                },
+                            textAlign = TextAlign.Center,
+                            text = " نمودار فروش 30 روز گزشته",
+                            color = if (graphState == THIRTY_DAYS_GRAPH) Color.Black else MaterialTheme.colors.onPrimary,
+                            fontFamily = persian_font_semi_bold,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
             SaleContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(600.dp),
-                saleHistoryList = saleHistoryList
+                saleHistoryList = saleHistoryList.value
             ){  History  ->
                 onEdit(History,FabRoute.EditSaleFab)
             }
         }
     }
 }
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SaleContent(
     modifier: Modifier = Modifier,
-    saleHistoryList: List<History>,
     viewModel: ViewModel = hiltViewModel(),
+    saleHistoryList: List<History>,
     onEdit: (History) -> Unit
-) {
-    var showDeleteDialog =  remember {
+){
+
+    val showDeleteDialog =  remember {
         mutableStateOf(false)
     }
     var deleteHistory by remember {
@@ -185,7 +367,7 @@ fun SaleContent(
     }
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(10.dp) ,
+        contentPadding = PaddingValues(10.dp),
     ){
         items(
             count = saleHistoryList.size,
@@ -211,12 +393,13 @@ fun SaleContent(
         CustomDeleteDialog(
             modifier = Modifier
                 .width(350.dp)
-                .height(175.dp),
+                .height(250.dp),
             setShowDialog = {
                 showDeleteDialog.value = it
             },
             title = "حذف کردن تراکنش فروش",
-            content = "حذف این تراکنش دائمی و غیر قابل بازکشت می باشد." +
+            content = "حذف این تراکنش دائمی و غیر قابل بازکشت می باشد. در" +
+                    " صورت حذف تعداد کالا های فروخته شده به کالا های موجود در انبار اضافه می شود." +
                     " آیا مطمئن هستید که میخواهید این تراکنش را حذف کنید؟",
             positiveButtonTitle = "حذف کن",
             negativeButtonTitle = "خارج شدن",
@@ -262,8 +445,6 @@ fun SaleBottomSheetContent(
                 inventoryEntity.value = null
             }
         }
-        Log.d("@@@@",oldHistory.toString())
-
         Column (
             modifier = Modifier.fillMaxSize()
         ){
@@ -298,7 +479,6 @@ fun SaleBottomSheetContent(
                         item = saleList[it],
                         isSelected = inventoryEntity.value?.createdTimeStamp == saleList[it].createdTimeStamp
                     ){ InventoryEntity ->
-                        Log.d("check!!","${InventoryEntity.title}@@@${inventoryEntity.value?.title}")
                         if( InventoryEntity == inventoryEntity.value){
                             inventoryEntity.value = null
                         }else{
@@ -489,7 +669,7 @@ fun SaleBottomSheetItem(
                 },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+        ){
             Text(
                 modifier = Modifier
                     .padding(vertical = 5.dp, horizontal = contentPadding),
@@ -530,7 +710,7 @@ fun ResultBottomSheetContent(
     viewModel: ViewModel = hiltViewModel(),
     controller: PersianDataPickerController,
     onCancel:() ->  Unit,
-    onResult:(Pair<Long,Long>) ->  Unit,
+    onResult:(Map<String,Long>) ->  Unit,
 ){
     val currentDate = viewModel.getPersianDate()
     var btnDate by remember {
@@ -658,12 +838,10 @@ fun ResultBottomSheetContent(
             Button(
                 modifier = Modifier.width(175.dp),
                 onClick = {
-
                     onCancel()
                 },
                 shape = RoundedCornerShape(100),
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF013A63))
-
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
@@ -686,14 +864,13 @@ fun ResultBottomSheetContent(
                     untilPd.shMonth = untilDate[MONTH]!!
                     untilPd.shDay = untilDate[DAY]!!
 
-                    viewModel.filterDate.value = mutableMapOf(
-                        FROM to fromPd.toDate().time,
-                        UNTIL to untilPd.toDate().time
-                    )
+                    viewModel.onEvent(Event.FilterSaleHistory(
+                        mapOf(FROM to fromPd, UNTIL to untilPd)
+                    ))
+                    onCancel()
                 },
                 shape = RoundedCornerShape(100),
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF008506))
-
             ) {
                 Text(
                     modifier = Modifier
@@ -708,7 +885,6 @@ fun ResultBottomSheetContent(
         }
         Spacer(modifier = Modifier.height(16.dp))
     }
-
 }
 @Composable
 fun SaleItem(
@@ -773,7 +949,7 @@ fun SaleItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="سود حاصل از قروش کالا: ${(item.sellPrice.toInt() - item.buyPrice.toInt()) * item.saleNumber.toInt()}",
+                        text ="سود حاصل از فروش کالا: ${(item.sellPrice.toInt() - item.buyPrice.toInt()) * item.saleNumber.toInt()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -803,8 +979,6 @@ fun SaleItem(
                         tint = Color.Black
                     )
                 }
-
-
             }
             Divider(
                 modifier = Modifier
@@ -827,7 +1001,7 @@ fun SaleItem(
                             shape = RoundedCornerShape(20.dp)
                         )
                         .padding(vertical = 5.dp, horizontal = 10.dp),
-                    text ="تراکنش : قروش کالا",
+                    text ="تراکنش : فروش کالا",
                     fontFamily = persian_font_semi_bold,
                     fontSize = 14.sp,
                     color = Color.Black,

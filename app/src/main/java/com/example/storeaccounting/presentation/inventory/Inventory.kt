@@ -44,6 +44,7 @@ fun Inventory(
     context: Context = LocalContext.current,
     onClick: (FabRoute, InventoryEntity?) ->  Unit
 ) {
+    Log.d("InventoryRecomposition","@@@@@@@@")
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         floatingActionButton = {
@@ -189,8 +190,7 @@ fun InventoryList(
     showEditBottomSheet: (InventoryEntity)  -> Unit,
     showHistoryCustomDialog: (InventoryEntity)  -> Unit
 ){
-
-    val inventoryList = viewModel.state.value.inventory
+    val inventoryList = viewModel.state.value.inventory.sortedBy { it.title }
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
 
