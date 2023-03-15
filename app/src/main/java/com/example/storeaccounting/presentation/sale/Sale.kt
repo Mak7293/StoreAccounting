@@ -59,14 +59,10 @@ import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.line.lineSpec
-import com.patrykandpatrick.vico.core.DEF_THREAD_POOL_SIZE
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.runBlocking
-import java.util.concurrent.Executors
 
 
 @Composable
@@ -96,7 +92,7 @@ fun Sale(
     LaunchedEffect(key1 = true){
         viewModel.eventFlow.collectLatest { event  ->
             when(event){
-                is ViewModel.UiEvent.FilteredList   ->  {
+                is ViewModel.UiEvent.FilteredHistoryList   ->  {
                     saleHistoryList.value = viewModel.state.value.filteredHistory
                 }
                 is ViewModel.UiEvent.SaleInventory  ->  {
@@ -183,13 +179,18 @@ fun Sale(
                 ){
                     val a = graphList.value.map { it }.toTypedArray()
                     val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(*a))
+
                     Chart(
-                        chart = lineChart(
-                            lines = listOf(lineSpec(
-                                lineColor = Color.Red
-                            ))
-                        ),
-                        chartModelProducer = chartEntryModelProducer1 ,
+                        chart =
+                            lineChart(
+                                lines = listOf(lineSpec(
+                                    lineColor = Color.Red
+                                ))
+                            )
+                        ,
+                        chartModelProducer = remember(key1 = graphList.value) {
+                            chartEntryModelProducer1
+                        } ,
                         startAxis = startAxis(
                             axis = axisLineComponent(
                                 strokeWidth = 2.dp,
@@ -263,15 +264,28 @@ fun Sale(
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
-                        if (viewModel.filterState.value)
-                        Text(
-                            textAlign = TextAlign.Center,
-                            text = "از ${PersianDateFormat("Y/m/d").format(viewModel.filterRange?.get(FROM))}" +
-                                    " تا ${PersianDateFormat("Y/m/d").format(viewModel.filterRange?.get(UNTIL))} ",
-                            color = Color.Black,
-                            fontFamily = persian_font_semi_bold,
-                            fontSize = 14.sp
-                        )
+                        if (viewModel.filterState.value) {
+                            Text(
+                                textAlign = TextAlign.Center,
+                                text = "از ${
+                                    PersianDateFormat("Y/m/d").format(
+                                        viewModel.filterRange?.get(
+                                            FROM
+                                        )
+                                    )
+                                }" +
+                                        " تا ${
+                                            PersianDateFormat("Y/m/d").format(
+                                                viewModel.filterRange?.get(
+                                                    UNTIL
+                                                )
+                                            )
+                                        } ",
+                                color = Color.Black,
+                                fontFamily = persian_font_semi_bold,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,

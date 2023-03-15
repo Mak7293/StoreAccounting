@@ -14,4 +14,5 @@ sealed class Event {
                                      val newHistory: History, val oldHistory: History): Event()
     data class DeleteSaleHistory(val history: History): Event()
     data class FilterSaleHistory(val map: Map<String,PersianDate>?): Event()
+    data class FilterInventory(val query:String ): Event()
 }

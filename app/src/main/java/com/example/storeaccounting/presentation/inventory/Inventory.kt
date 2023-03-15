@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.presentation.component.CustomDeleteDialog
@@ -37,6 +38,7 @@ import com.example.storeaccounting.presentation.view_model.ViewModel
 import com.example.storeaccounting.ui.theme.persian_font_medium
 import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
+import kotlinx.coroutines.flow.collectLatest
 import saman.zamani.persiandate.PersianDateFormat
 
 @Composable
@@ -44,7 +46,7 @@ fun Inventory(
     context: Context = LocalContext.current,
     onClick: (FabRoute, InventoryEntity?) ->  Unit
 ) {
-    Log.d("InventoryRecomposition","@@@@@@@@")
+    Log.d("InventoryRecomposition0","@@@@@@@@")
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         floatingActionButton = {
@@ -68,19 +70,20 @@ fun Inventory(
                 .fillMaxSize()
                 .padding(it)
         ){  InventoryEntity ->
-
             onClick(FabRoute.InventoryFab,InventoryEntity)
+
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+
 @Composable
 fun InventoryContent(
     modifier : Modifier = Modifier,
     viewModel: ViewModel = hiltViewModel(),
     onData:(InventoryEntity) -> Unit
 ){
+
     val showDeleteDialog =  remember {
         mutableStateOf(false)
     }
@@ -153,12 +156,16 @@ fun InventoryContent(
         )
     }
 }
-
 @Composable
 fun InventoryHistory(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues,
+    viewModel: ViewModel = hiltViewModel()
 ){
+    var text by remember {
+        mutableStateOf("")
+    }
+
     RightToLeftLayout {
         Column(
             modifier = modifier.padding(contentPadding),
@@ -174,6 +181,16 @@ fun InventoryHistory(
                 fontFamily = persian_font_regular,
                 fontSize = 18.sp
             )
+            EditText(
+                hint =  "نام کالا را جهت جست و جو وارد کنید...",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                _text = "",
+            ){
+                text = it
+                viewModel.onEvent(Event.FilterInventory(it))
+            }
             Divider(modifier = Modifier
                 .fillMaxWidth()
                 .width(2.dp),
@@ -190,18 +207,39 @@ fun InventoryList(
     showEditBottomSheet: (InventoryEntity)  -> Unit,
     showHistoryCustomDialog: (InventoryEntity)  -> Unit
 ){
-    val inventoryList = viewModel.state.value.inventory.sortedBy { it.title }
+    Log.d("InventoryRecomposition1","@@@@@@@@")
+    val inventoryList = remember {
+        mutableStateOf(viewModel.state.value.filteredInventory.sortedBy { it.title })
+    }
+    LaunchedEffect(key1 = viewModel.state.value.filteredInventory){
+        inventoryList.value = viewModel.state.value.filteredInventory
+    }
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event  ->
+            when(event){
+                is ViewModel.UiEvent.FilteredInventoryList   ->  {
+                    inventoryList.value = viewModel.state.value.filteredInventory
+                    Log.d("filterInventory", "!!!!!!")
+                    Log.d("filterInventory", viewModel.state.value.filteredInventory.toString())
+                    Log.d("filterInventory", inventoryList.value.toString())
+                }
+                else -> {
+
+                }
+            }
+        }
+    }
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
 
     ){
         items(
-            count = inventoryList.size,
+            count = inventoryList.value.size,
             key = { it }
         ){
             InventoryItem(
                 modifier = Modifier.animateItemPlacement(animationSpec = tween(durationMillis = 1500)),
-                item = inventoryList[it],
+                item = inventoryList.value[it],
                 verticalPadding = 8.dp,
                 contentPadding = 8.dp,
                 onEdit = {  Inventory ->

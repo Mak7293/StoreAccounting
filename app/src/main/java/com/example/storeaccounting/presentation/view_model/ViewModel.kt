@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
 import com.example.storeaccounting.domain.model.History
@@ -31,7 +30,6 @@ class ViewModel@Inject constructor(
 
     private val _state = mutableStateOf<ViewModelState>(ViewModelState())
     val state: State<ViewModelState> = _state
-
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
@@ -73,6 +71,9 @@ class ViewModel@Inject constructor(
             is Event.FilterSaleHistory  ->   {
                 filteredHistory(event.map)
             }
+            is Event.FilterInventory   ->   {
+                filteredInventory(event.query)
+            }
         }
     }
     private fun filteredHistory(dateRange: Map<String,PersianDate> ?){
@@ -88,7 +89,7 @@ class ViewModel@Inject constructor(
             _state.value.filteredHistory = _state.value.history
         }
         viewModelScope.launch(Dispatchers.IO) {
-            _eventFlow.emit(UiEvent.FilteredList)
+            _eventFlow.emit(UiEvent.FilteredHistoryList)
         }
         filterState.value = true
 
@@ -118,6 +119,23 @@ class ViewModel@Inject constructor(
         }
         result.remove(0)
         return result
+    }
+    private fun filteredInventory(query: String){
+        if (query.isEmpty()){
+            state.value.filteredInventory = state.value.inventory
+        }else{
+            state.value.filteredInventory = state.value.inventory.filter {
+                it.title.contains(
+                    query.trim(), ignoreCase = true
+                )
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            _eventFlow.emit(
+                UiEvent.FilteredInventoryList
+            )
+        }
+        Log.d("filterInventory", state.value.filteredInventory.toString())
     }
     private fun deleteSaleHistory(history: History){
         viewModelScope.launch(Dispatchers.IO) {
@@ -255,7 +273,8 @@ class ViewModel@Inject constructor(
         object SaleInventory: UiEvent()
         object UpdateSaleHistory: UiEvent()
         object DeleteSaleHistory: UiEvent()
-        object FilteredList: UiEvent()
+        object FilteredHistoryList: UiEvent()
+        object FilteredInventoryList: UiEvent()
     }
     private fun getInventory(){
         getInventoryJob?.cancel()
