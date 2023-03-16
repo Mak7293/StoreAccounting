@@ -37,8 +37,8 @@ import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.component.date_picker.PersianDataPicker
 import com.example.storeaccounting.presentation.util.Constants.DAY
 import com.example.storeaccounting.presentation.util.FabRoute
-import com.example.storeaccounting.presentation.view_model.Event
-import com.example.storeaccounting.presentation.view_model.ViewModel
+import com.example.storeaccounting.presentation.view_model.inventory_sale.InvetorySaleEvent
+import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleViewModel
 import com.example.storeaccounting.ui.theme.persian_font_medium
 import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
@@ -67,65 +67,65 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun Sale(
-    viewModel: ViewModel,
+    inventorySaleViewModel: InventorySaleViewModel,
     onEdit: (History,FabRoute) -> Unit,
     onClick:(FabRoute)  -> Unit,
 ){
     Log.d("SaleRecomposition","@@@@@@@@")
 
     val saleHistoryList = remember() {
-        mutableStateOf(viewModel.state.value.filteredHistory.filter {
+        mutableStateOf(inventorySaleViewModel.state.value.filteredHistory.filter {
             it.transaction == TransactionState.Sale.state
         })
     }
-    LaunchedEffect(key1 = viewModel.state.value.filteredHistory[0].id){
-        saleHistoryList.value = viewModel.state.value.filteredHistory
+    LaunchedEffect(key1 = inventorySaleViewModel.state.value.filteredHistory[0].id){
+        saleHistoryList.value = inventorySaleViewModel.state.value.filteredHistory
     }
 
     var graphState by remember {
         mutableStateOf(TEN_DAYS_GRAPH)
     }
-    val graphList = remember(key1 =  viewModel.state.value.history){
+    val graphList = remember(key1 =  inventorySaleViewModel.state.value.history){
         mutableStateOf<List<Number>>(
-            viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+            inventorySaleViewModel.mapSaleProfitByDay(inventorySaleViewModel.graphHistoryList(
                 from = System.currentTimeMillis()-(864000000),
                 until = System.currentTimeMillis()
         )).values.toMutableList())
     }
 
-    Log.d("SaleRecomposition", viewModel.state.value.filteredHistory.toString())
-    Log.d("SaleRecomposition", viewModel.state.value.history.toString())
+    Log.d("SaleRecomposition", inventorySaleViewModel.state.value.filteredHistory.toString())
+    Log.d("SaleRecomposition", inventorySaleViewModel.state.value.history.toString())
     LaunchedEffect(key1 = true){
-        viewModel.eventFlow.collectLatest { event  ->
+        inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
-                is ViewModel.UiEvent.FilteredHistoryList   ->  {
+                is InventorySaleViewModel.UiEvent.FilteredHistoryList   ->  {
                     Log.d("SaleRecomposition!!!-0", saleHistoryList.value.toString())
-                    saleHistoryList.value = viewModel.state.value.filteredHistory
+                    saleHistoryList.value = inventorySaleViewModel.state.value.filteredHistory
                     Log.d("SaleRecomposition!!!-1", saleHistoryList.value.toString())
                 }
-                is ViewModel.UiEvent.SaleInventory  ->  {
+                is InventorySaleViewModel.UiEvent.SaleInventory  ->  {
                     delay(500L)
                     if(graphState == TEN_DAYS_GRAPH){
-                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                        graphList.value = inventorySaleViewModel.mapSaleProfitByDay(inventorySaleViewModel.graphHistoryList(
                             from = System.currentTimeMillis()-(864000000),
                             until = System.currentTimeMillis()
                         )).values.toMutableList()
                     }else if (graphState == THIRTY_DAYS_GRAPH){
-                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                        graphList.value = inventorySaleViewModel.mapSaleProfitByDay(inventorySaleViewModel.graphHistoryList(
                             from = System.currentTimeMillis()-(2592000000),
                             until = System.currentTimeMillis()
                         )).values.toMutableList()
                     }
                 }
-                is ViewModel.UiEvent.DeleteSaleHistory  ->  {
+                is InventorySaleViewModel.UiEvent.DeleteSaleHistory  ->  {
                     delay(1000L)
                     if(graphState == TEN_DAYS_GRAPH){
-                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                        graphList.value = inventorySaleViewModel.mapSaleProfitByDay(inventorySaleViewModel.graphHistoryList(
                             from = System.currentTimeMillis()-(864000000),
                             until = System.currentTimeMillis()
                         )).values.toMutableList()
                     }else if (graphState == THIRTY_DAYS_GRAPH){
-                        graphList.value = viewModel.mapSaleProfitByDay(viewModel.graphHistoryList(
+                        graphList.value = inventorySaleViewModel.mapSaleProfitByDay(inventorySaleViewModel.graphHistoryList(
                             from = System.currentTimeMillis()-(2592000000),
                             until = System.currentTimeMillis()
                         )).values.toMutableList()
@@ -249,40 +249,40 @@ fun Sale(
                                 .width(180.dp)
                                 .height(35.dp),
                             onClick = {
-                                if(viewModel.filterState.value){
-                                    viewModel.onEvent(Event.FilterSaleHistory(null))
+                                if(inventorySaleViewModel.filterState.value){
+                                    inventorySaleViewModel.onEvent(InvetorySaleEvent.FilterSaleHistory(null))
                                 }else{
                                     onClick(FabRoute.ResultFab)
                                 }
                             },
                             shape = CircleShape,
                             colors =  ButtonDefaults.buttonColors(
-                                backgroundColor = if(viewModel.filterState.value) Color.Red else Color.White,
+                                backgroundColor = if(inventorySaleViewModel.filterState.value) Color.Red else Color.White,
                             ),
                             border = BorderStroke(width = 2.dp, color = Color.Black)
                         ) {
                             Text(
                                 textAlign = TextAlign.Center,
-                                text =if(viewModel.filterState.value) "نمایش تمام فروش ها" else "فیلتر کردن تاریخ فروش ها",
+                                text =if(inventorySaleViewModel.filterState.value) "نمایش تمام فروش ها" else "فیلتر کردن تاریخ فروش ها",
                                 color = Color.Black,
                                 fontFamily = persian_font_semi_bold,
                                 fontSize = 14.sp
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
-                        if (viewModel.filterState.value) {
+                        if (inventorySaleViewModel.filterState.value) {
                             Text(
                                 textAlign = TextAlign.Center,
                                 text = "از ${
                                     PersianDateFormat("Y/m/d").format(
-                                        viewModel.filterRange?.get(
+                                        inventorySaleViewModel.filterRange?.get(
                                             FROM
                                         )
                                     )
                                 }" +
                                         " تا ${
                                             PersianDateFormat("Y/m/d").format(
-                                                viewModel.filterRange?.get(
+                                                inventorySaleViewModel.filterRange?.get(
                                                     UNTIL
                                                 )
                                             )
@@ -311,8 +311,8 @@ fun Sale(
                                 .padding(5.dp)
                                 .clickable {
                                     if (graphState != TEN_DAYS_GRAPH) {
-                                        graphList.value = viewModel.mapSaleProfitByDay(
-                                            viewModel.graphHistoryList(
+                                        graphList.value = inventorySaleViewModel.mapSaleProfitByDay(
+                                            inventorySaleViewModel.graphHistoryList(
                                                 from = System.currentTimeMillis() - (864000000), // 10*24*60*60*1000
                                                 until = System.currentTimeMillis()
                                             )
@@ -341,8 +341,8 @@ fun Sale(
                                 .padding(5.dp)
                                 .clickable {
                                     if (graphState != THIRTY_DAYS_GRAPH) {
-                                        graphList.value = viewModel.mapSaleProfitByDay(
-                                            viewModel.graphHistoryList(
+                                        graphList.value = inventorySaleViewModel.mapSaleProfitByDay(
+                                            inventorySaleViewModel.graphHistoryList(
                                                 from = System.currentTimeMillis() - (2592000000),  // 30*24*60*60*1000
                                                 until = System.currentTimeMillis()
                                             )
@@ -374,7 +374,7 @@ fun Sale(
 @Composable
 fun SaleContent(
     modifier: Modifier = Modifier,
-    viewModel: ViewModel = hiltViewModel(),
+    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
     saleHistoryList: List<History>,
     onEdit: (History) -> Unit
 ){
@@ -424,7 +424,7 @@ fun SaleContent(
             positiveButtonTitle = "حذف کن",
             negativeButtonTitle = "خارج شدن",
             onSuccess = {
-                viewModel.onEvent(Event.DeleteSaleHistory(deleteHistory!!))
+                inventorySaleViewModel.onEvent(InvetorySaleEvent.DeleteSaleHistory(deleteHistory!!))
                 showDeleteDialog.value = false
             },
             onCancel = {
@@ -439,7 +439,7 @@ fun SaleContent(
 @Composable
 fun SaleBottomSheetContent(
     modifier: Modifier = Modifier,
-    viewModel: ViewModel = hiltViewModel(),
+    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
     saleList: List<InventoryEntity>,
     context: Context = LocalContext.current,
     oldHistory: History? = null,
@@ -450,7 +450,7 @@ fun SaleBottomSheetContent(
         contentAlignment = Alignment.Center
     ){
         val currentDate = PersianDateFormat("Y/m/d")
-            .format(viewModel.getPersianDate()).toString()
+            .format(inventorySaleViewModel.getPersianDate()).toString()
         var number by remember {
             mutableStateOf("")
         }
@@ -459,7 +459,7 @@ fun SaleBottomSheetContent(
         }
         LaunchedEffect(key1 = oldHistory){
             if (oldHistory!=null){
-                inventoryEntity.value = viewModel.getHistoryByInventory(oldHistory.createdTimeStamp).inventory
+                inventoryEntity.value = inventorySaleViewModel.getHistoryByInventory(oldHistory.createdTimeStamp).inventory
                 number = oldHistory.saleNumber
             }else{
                 inventoryEntity.value = null
@@ -613,12 +613,14 @@ fun SaleBottomSheetContent(
                                     date = newInventoryEntity.date
                                 )
                                 if(oldHistory == null){
-                                    viewModel.onEvent(Event.SaleInventory(
+                                    inventorySaleViewModel.onEvent(
+                                        InvetorySaleEvent.SaleInventory(
                                         inventoryEntity = newInventoryEntity,
                                         history = newHistory
                                     ))
                                 }else{
-                                    viewModel.onEvent(Event.UpdateSaleTransaction(
+                                    inventorySaleViewModel.onEvent(
+                                        InvetorySaleEvent.UpdateSaleTransaction(
                                         inventoryEntity = newInventoryEntity,
                                         newHistory = newHistory,
                                         oldHistory = oldHistory))
@@ -732,12 +734,12 @@ fun SaleBottomSheetItem(
 @Composable
 fun ResultBottomSheetContent(
     modifier: Modifier = Modifier,
-    viewModel: ViewModel = hiltViewModel(),
+    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
     controller: PersianDataPickerController,
     onCancel:() ->  Unit,
     onResult:(Map<String,Long>) ->  Unit,
 ){
-    val currentDate = viewModel.getPersianDate()
+    val currentDate = inventorySaleViewModel.getPersianDate()
     var btnDate by remember {
         mutableStateOf(mutableMapOf<String,Boolean>(FROM to true , UNTIL to false))
     }
@@ -889,7 +891,8 @@ fun ResultBottomSheetContent(
                     untilPd.shMonth = untilDate[MONTH]!!
                     untilPd.shDay = untilDate[DAY]!!
 
-                    viewModel.onEvent(Event.FilterSaleHistory(
+                    inventorySaleViewModel.onEvent(
+                        InvetorySaleEvent.FilterSaleHistory(
                         mapOf(FROM to fromPd, UNTIL to untilPd)
                     ))
                     onCancel()
@@ -989,7 +992,7 @@ fun SaleItem(
                                 onEdit(item)
                             },
                         imageVector = Icons.Default.Edit ,
-                        contentDescription = "Add",
+                        contentDescription = "Edit",
                         tint = Color.Black
                     )
                     Icon(
@@ -1000,7 +1003,7 @@ fun SaleItem(
                                 onDelete(item)
                             },
                         imageVector = Icons.Default.Cancel ,
-                        contentDescription = "Add",
+                        contentDescription = "Cancel",
                         tint = Color.Black
                     )
                 }

@@ -32,4 +32,14 @@ sealed class NavigationRoute(
         icon = Icons.Outlined.Settings,
         title = "تنظیمات"
     )
+    object AddEditCreditCard: NavigationRoute(
+        route = "add_credit_card",
+        icon = null,
+        title = null
+    )
+    object Main: NavigationRoute(
+        route = "main",
+        icon = null,
+        title = null
+    )
 }

@@ -33,6 +33,7 @@ import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.util.TransactionState
 import com.example.storeaccounting.presentation.General.General
+import com.example.storeaccounting.presentation.add_edit_credit_card.AddEditCreditCard
 import com.example.storeaccounting.presentation.component.BottomNavigation
 import com.example.storeaccounting.presentation.inventory.AddEditInventoryBottomSheetContent
 import com.example.storeaccounting.presentation.inventory.Inventory
@@ -42,13 +43,11 @@ import com.example.storeaccounting.presentation.sale.SaleBottomSheetContent
 import com.example.storeaccounting.presentation.setting.Setting
 import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
-import com.example.storeaccounting.presentation.view_model.ViewModel
+import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleViewModel
 import com.example.storeaccounting.ui.theme.StoreAccountingTheme
 import com.razaghimahdi.compose_persian_date.core.rememberPersianDataPicker
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -76,63 +75,27 @@ class MainActivity : ComponentActivity() {
                 Log.d("today formatted!!", persianDateFormatter.format(persianDate).toString())*/
 
                 val navController = rememberNavController()
-                Main(
-                    navController = navController,
-                    window = window
-                )
-            }
-        }
-    }
-}
+                val parentNavController = rememberNavController()
+                NavHost(
+                    navController = parentNavController,
+                    startDestination = NavigationRoute.Main.route,
+                    modifier = Modifier
+                        .background(MaterialTheme.colors.background)
+                ){
+                    composable(route = NavigationRoute.Main.route){
+                        Main(
+                            navController = navController,
+                            parentNavController = parentNavController,
+                            window = window
+                        )
+                    }
+                    composable(route = NavigationRoute.AddEditCreditCard.route){
 
-@Composable
-fun SetStatusBarTheme(window : Window, currentFragment: String) {
-    when(currentFragment){
-        TransactionState.Sale.state  ->   {
-            if (isSystemInDarkTheme()) {
-                val backgroundArgb = MaterialTheme.colors.primary.toArgb()
-                window.statusBarColor = backgroundArgb
-               /* val windowInsetController = ViewCompat.getWindowInsetsController(window.decorView)
-                windowInsetController?.isAppearanceLightStatusBars = true*/
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                    window.insetsController?.setSystemBarsAppearance(
-                        APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
-                }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                        AddEditCreditCard( parentNavController = parentNavController)
+                        SetStatusBarTheme(window,it.destination.route!!)
+                    }
+                }
 
-                }
-            } else {
-                val backgroundArgb = MaterialTheme.colors.primary.toArgb()
-                window.statusBarColor = backgroundArgb
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                    window.insetsController?.setSystemBarsAppearance(
-                        0, APPEARANCE_LIGHT_STATUS_BARS)
-                }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE)
-                }
-            }
-        }
-        else   ->   {
-            if (isSystemInDarkTheme()) {
-                val backgroundArgb = MaterialTheme.colors.background.toArgb()
-                window.statusBarColor = backgroundArgb
-                /*val windowInsetController = ViewCompat.getWindowInsetsController(window.decorView)
-                windowInsetController?.isAppearanceLightStatusBars = false*/
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                    window.insetsController?.setSystemBarsAppearance(
-                        0, APPEARANCE_LIGHT_STATUS_BARS)
-                }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
-                }
-            } else {
-                val backgroundArgb = MaterialTheme.colors.background.toArgb()
-                window.statusBarColor = backgroundArgb
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                    window.insetsController?.setSystemBarsAppearance(
-                        APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
-                }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
-                }
             }
         }
     }
@@ -142,7 +105,8 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
 @Composable
 fun Main(
     navController: NavHostController,
-    viewModel: ViewModel = hiltViewModel(),
+    parentNavController: NavHostController,
+    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
     context: Context = LocalContext.current,
     window: Window
 ) {
@@ -173,13 +137,13 @@ fun Main(
         }
     }
     LaunchedEffect(key1 = true){
-        viewModel.eventFlow.collectLatest { event  ->
+        inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
-                is  ViewModel.UiEvent.ShowToast   ->   {
+                is  InventorySaleViewModel.UiEvent.ShowToast   ->   {
                     Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
 
                 }
-                is  ViewModel.UiEvent.SaveInventory  ->  {
+                is  InventorySaleViewModel.UiEvent.SaveInventory  ->  {
                     scope.launch {
                         if(sheetState.isCollapsed) {
                             sheetState.expand()
@@ -188,10 +152,10 @@ fun Main(
                         }
                     }
                 }
-                is ViewModel.UiEvent.DeleteInventory   -> {
+                is InventorySaleViewModel.UiEvent.DeleteInventory   -> {
                     Toast.makeText(context,"کالا با موفقیت حذف شد.",Toast.LENGTH_SHORT).show()
                 }
-                is ViewModel.UiEvent.UpdateInventory   -> {
+                is InventorySaleViewModel.UiEvent.UpdateInventory   -> {
                     scope.launch {
                         if(sheetState.isCollapsed) {
                             sheetState.expand()
@@ -200,7 +164,7 @@ fun Main(
                         }
                     }
                 }
-                is ViewModel.UiEvent.SaleInventory   ->   {
+                is InventorySaleViewModel.UiEvent.SaleInventory   ->   {
                     Toast.makeText(context,"فروش کالا با موفقیت ثبت شد.",Toast.LENGTH_SHORT).show()
                     scope.launch {
                         if(sheetState.isCollapsed) {
@@ -210,7 +174,7 @@ fun Main(
                         }
                     }
                 }
-                is ViewModel.UiEvent.UpdateSaleHistory  ->  {
+                is InventorySaleViewModel.UiEvent.UpdateSaleHistory  ->  {
                     Toast.makeText(context,"تراکنش فروش با موقیت به روز رسانی شد.",Toast.LENGTH_SHORT).show()
                     scope.launch {
                         if(sheetState.isCollapsed) {
@@ -220,7 +184,7 @@ fun Main(
                         }
                     }
                 }
-                is ViewModel.UiEvent.DeleteSaleHistory   ->   {
+                is InventorySaleViewModel.UiEvent.DeleteSaleHistory   ->   {
                     Toast.makeText(context,"تراکنش فروش با موقیت به حذف شد.",Toast.LENGTH_SHORT).show()
                 }
                 else -> {}
@@ -245,7 +209,7 @@ fun Main(
                                 )
                             ),
                         inventory = inventory,
-                        viewModel = viewModel,
+                        inventorySaleViewModel = inventorySaleViewModel,
                     ){
                         scope.launch {
                             if(sheetState.isCollapsed) {
@@ -278,7 +242,7 @@ fun Main(
                                     topEnd = 35.dp
                                 ),
                             ),
-                        saleList = viewModel.state.value.inventory,
+                        saleList = inventorySaleViewModel.state.value.inventory,
                         oldHistory = null
                     ){
                         scope.launch {
@@ -313,7 +277,7 @@ fun Main(
                                     topEnd = 35.dp
                                 ),
                             ),
-                        saleList = viewModel.state.value.inventory,
+                        saleList = inventorySaleViewModel.state.value.inventory,
                         oldHistory = editSaleHistory
                     ){
 
@@ -397,12 +361,13 @@ fun Main(
                     .background(MaterialTheme.colors.background)
             ){
                 composable(route = NavigationRoute.General.route){
-
-                    General()
+                    General(
+                        parentNavController = parentNavController,
+                    )
                     SetStatusBarTheme(window,it.destination.route!!)
                 }
                 composable(route = NavigationRoute.Inventory.route){
-                    Inventory(){ route , _invnetory   ->
+                    Inventory{ route , _invnetory   ->
 
                         fabState.value = route.route
                         scope.launch {
@@ -419,7 +384,7 @@ fun Main(
                 }
                 composable(route = NavigationRoute.Sale.route){
                     Sale(
-                        viewModel = viewModel,
+                        inventorySaleViewModel = inventorySaleViewModel,
                         onEdit = {   History, FabRoute  ->
                             fabState.value = FabRoute.route
                             editSaleHistory = History
@@ -432,6 +397,7 @@ fun Main(
                             }
                         }
                     ){
+
                         fabState.value = it.route
                         scope.launch {
                             if(sheetState.isCollapsed) {
@@ -444,7 +410,6 @@ fun Main(
                     SetStatusBarTheme(window,it.destination.route!!)
                 }
                 composable(route = NavigationRoute.Setting.route){
-
                     Setting()
                     SetStatusBarTheme(window,it.destination.route!!)
                 }
@@ -453,6 +418,81 @@ fun Main(
     }
 }
 
+@Composable
+fun SetStatusBarTheme(window : Window, currentFragment: String) {
+    when(currentFragment){
+        NavigationRoute.Sale.route  ->   {
+            if (isSystemInDarkTheme()) {
+                val backgroundArgb = MaterialTheme.colors.primary.toArgb()
+                window.statusBarColor = backgroundArgb
+                /* val windowInsetController = ViewCompat.getWindowInsetsController(window.decorView)
+                 windowInsetController?.isAppearanceLightStatusBars = true*/
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+
+                }
+            } else {
+                val backgroundArgb = MaterialTheme.colors.primary.toArgb()
+                window.statusBarColor = backgroundArgb
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        0, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE)
+                }
+            }
+        }
+        NavigationRoute.AddEditCreditCard.route  ->  {
+            if (isSystemInDarkTheme()) {
+                val backgroundArgb = MaterialTheme.colors.onSurface.toArgb()
+                window.statusBarColor = backgroundArgb
+                /*val windowInsetController = ViewCompat.getWindowInsetsController(window.decorView)
+                windowInsetController?.isAppearanceLightStatusBars = false*/
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        0, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            } else {
+                val backgroundArgb = MaterialTheme.colors.onSurface.toArgb()
+                window.statusBarColor = backgroundArgb
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            }
+        }
+        else   ->   {
+            if (isSystemInDarkTheme()) {
+                val backgroundArgb = MaterialTheme.colors.background.toArgb()
+                window.statusBarColor = backgroundArgb
+                /*val windowInsetController = ViewCompat.getWindowInsetsController(window.decorView)
+                windowInsetController?.isAppearanceLightStatusBars = false*/
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        0, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            } else {
+                val backgroundArgb = MaterialTheme.colors.background.toArgb()
+                window.statusBarColor = backgroundArgb
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            }
+        }
+    }
+}
 
 
 

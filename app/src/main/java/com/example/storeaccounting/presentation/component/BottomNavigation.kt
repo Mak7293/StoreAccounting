@@ -65,7 +65,6 @@ fun BottomNavigation(
                             ),
                         imageVector = it.icon!!,
                         contentDescription = it.title,
-
                     )
                 },
             )

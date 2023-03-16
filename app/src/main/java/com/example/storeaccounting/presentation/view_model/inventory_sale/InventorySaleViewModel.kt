@@ -1,4 +1,4 @@
-package com.example.storeaccounting.presentation.view_model
+package com.example.storeaccounting.presentation.view_model.inventory_sale
 
 import android.app.Application
 import android.database.SQLException
@@ -23,13 +23,13 @@ import com.example.storeaccounting.presentation.util.Constants.UNTIL
 import kotlinx.coroutines.flow.*
 
 @HiltViewModel
-class ViewModel@Inject constructor(
+class InventorySaleViewModel@Inject constructor(
     private val inventoryUseCases: UseCases,
     private val applicationContext: Application
     ):ViewModel() {
 
-    private val _state = mutableStateOf<ViewModelState>(ViewModelState())
-    val state: State<ViewModelState> = _state
+    private val _state = mutableStateOf<InventorySaleViewModelState>(InventorySaleViewModelState())
+    val state: State<InventorySaleViewModelState> = _state
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
@@ -44,35 +44,35 @@ class ViewModel@Inject constructor(
         getInventory()
         getAllHistory()
     }
-    fun onEvent(event: Event){
-        when(event){
-            is Event.InsertInventory ->  {
-                insertInventoryToDatabase(event.inventoryEntity)
+    fun onEvent(invetorySaleEvent: InvetorySaleEvent){
+        when(invetorySaleEvent){
+            is InvetorySaleEvent.InsertInventory ->  {
+                insertInventoryToDatabase(invetorySaleEvent.inventoryEntity)
             }
-            is Event.DeleteInventory ->  {
-                deleteTransactionFromDatabase(event.inventoryEntity)
+            is InvetorySaleEvent.DeleteInventory ->  {
+                deleteTransactionFromDatabase(invetorySaleEvent.inventoryEntity)
             }
-            is Event.UpdateInventory ->  {
-                updateInventory(event.inventoryEntity)
+            is InvetorySaleEvent.UpdateInventory ->  {
+                updateInventory(invetorySaleEvent.inventoryEntity)
             }
-            is Event.SaleInventory  ->  {
-                saleInventory(event.inventoryEntity,event.history)
+            is InvetorySaleEvent.SaleInventory  ->  {
+                saleInventory(invetorySaleEvent.inventoryEntity,invetorySaleEvent.history)
             }
-            is Event.UpdateSaleTransaction  ->  {
+            is InvetorySaleEvent.UpdateSaleTransaction  ->  {
                 updateSaleHistory(
-                    inventoryEntity = event.inventoryEntity,
-                    newHistory = event.newHistory,
-                    oldHistory = event.oldHistory
+                    inventoryEntity = invetorySaleEvent.inventoryEntity,
+                    newHistory = invetorySaleEvent.newHistory,
+                    oldHistory = invetorySaleEvent.oldHistory
                 )
             }
-            is Event.DeleteSaleHistory  ->   {
-                deleteSaleHistory(event.history)
+            is InvetorySaleEvent.DeleteSaleHistory  ->   {
+                deleteSaleHistory(invetorySaleEvent.history)
             }
-            is Event.FilterSaleHistory  ->   {
-                filteredHistory(event.map)
+            is InvetorySaleEvent.FilterSaleHistory  ->   {
+                filteredHistory(invetorySaleEvent.map)
             }
-            is Event.FilterInventory   ->   {
-                filteredInventory(event.query)
+            is InvetorySaleEvent.FilterInventory   ->   {
+                filteredInventory(invetorySaleEvent.query)
             }
         }
     }
@@ -147,8 +147,9 @@ class ViewModel@Inject constructor(
             }catch (e: SQLException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message =  applicationContext.
-                    resources.getString(R.string.alert_delete_sale_inventory))
+                    UiEvent.ShowToast(
+                        message = applicationContext.resources.getString(R.string.alert_delete_sale_inventory)
+                    )
                 )
             }
         }
@@ -176,8 +177,9 @@ class ViewModel@Inject constructor(
             }catch (e: SQLException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message =  applicationContext.
-                    resources.getString(R.string.alert_update_sale_inventory))
+                    UiEvent.ShowToast(
+                        message = applicationContext.resources.getString(R.string.alert_update_sale_inventory)
+                    )
                 )
             }
         }
@@ -220,8 +222,9 @@ class ViewModel@Inject constructor(
             }catch (e: SQLException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message =  applicationContext.
-                    resources.getString(R.string.alert_sale_inventory))
+                    UiEvent.ShowToast(
+                        message = applicationContext.resources.getString(R.string.alert_sale_inventory)
+                    )
                 )
             }
         }

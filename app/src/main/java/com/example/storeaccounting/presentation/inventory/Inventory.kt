@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.presentation.component.CustomDeleteDialog
@@ -33,8 +32,8 @@ import com.example.storeaccounting.presentation.component.CustomHistoryDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.util.FabRoute
-import com.example.storeaccounting.presentation.view_model.Event
-import com.example.storeaccounting.presentation.view_model.ViewModel
+import com.example.storeaccounting.presentation.view_model.inventory_sale.InvetorySaleEvent
+import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleViewModel
 import com.example.storeaccounting.ui.theme.persian_font_medium
 import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
@@ -71,7 +70,6 @@ fun Inventory(
                 .padding(it)
         ){  InventoryEntity ->
             onClick(FabRoute.InventoryFab,InventoryEntity)
-
         }
     }
 }
@@ -80,7 +78,7 @@ fun Inventory(
 @Composable
 fun InventoryContent(
     modifier : Modifier = Modifier,
-    viewModel: ViewModel = hiltViewModel(),
+    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
     onData:(InventoryEntity) -> Unit
 ){
 
@@ -123,7 +121,7 @@ fun InventoryContent(
                 .height(600.dp)
                 .width(400.dp),
             historyList = produceState<List<History>>(initialValue = emptyList()){
-                       value = viewModel.getHistoryByInventory(inventory.value.createdTimeStamp)
+                       value = inventorySaleViewModel.getHistoryByInventory(inventory.value.createdTimeStamp)
                            .history.sortedByDescending {it.timeStamp }
             }.value ,
             setShowDialog = {
@@ -147,7 +145,7 @@ fun InventoryContent(
             negativeButtonTitle = "خارج شدن",
             onSuccess = {
                 Log.d("delete",inventory.value.title)
-                viewModel.onEvent(Event.DeleteInventory(inventory.value))
+                inventorySaleViewModel.onEvent(InvetorySaleEvent.DeleteInventory(inventory.value))
                 showDeleteDialog.value = false
             },
             onCancel = {
@@ -160,7 +158,7 @@ fun InventoryContent(
 fun InventoryHistory(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues,
-    viewModel: ViewModel = hiltViewModel()
+    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel()
 ){
     var text by remember {
         mutableStateOf("")
@@ -189,7 +187,7 @@ fun InventoryHistory(
                 _text = "",
             ){
                 text = it
-                viewModel.onEvent(Event.FilterInventory(it))
+                inventorySaleViewModel.onEvent(InvetorySaleEvent.FilterInventory(it))
             }
             Divider(modifier = Modifier
                 .fillMaxWidth()
@@ -202,25 +200,25 @@ fun InventoryHistory(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InventoryList(
-    viewModel: ViewModel = hiltViewModel(),
+    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
     showDeleteCustomDialog: (InventoryEntity) -> Unit,
     showEditBottomSheet: (InventoryEntity)  -> Unit,
     showHistoryCustomDialog: (InventoryEntity)  -> Unit
 ){
     Log.d("InventoryRecomposition1","@@@@@@@@")
     val inventoryList = remember {
-        mutableStateOf(viewModel.state.value.filteredInventory.sortedBy { it.title })
+        mutableStateOf(inventorySaleViewModel.state.value.filteredInventory.sortedBy { it.title })
     }
-    LaunchedEffect(key1 = viewModel.state.value.filteredInventory){
-        inventoryList.value = viewModel.state.value.filteredInventory
+    LaunchedEffect(key1 = inventorySaleViewModel.state.value.filteredInventory){
+        inventoryList.value = inventorySaleViewModel.state.value.filteredInventory
     }
     LaunchedEffect(key1 = true){
-        viewModel.eventFlow.collectLatest { event  ->
+        inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
-                is ViewModel.UiEvent.FilteredInventoryList   ->  {
-                    inventoryList.value = viewModel.state.value.filteredInventory
+                is InventorySaleViewModel.UiEvent.FilteredInventoryList   ->  {
+                    inventoryList.value = inventorySaleViewModel.state.value.filteredInventory
                     Log.d("filterInventory", "!!!!!!")
-                    Log.d("filterInventory", viewModel.state.value.filteredInventory.toString())
+                    Log.d("filterInventory", inventorySaleViewModel.state.value.filteredInventory.toString())
                     Log.d("filterInventory", inventoryList.value.toString())
                 }
                 else -> {
@@ -259,11 +257,11 @@ fun InventoryList(
 fun AddEditInventoryBottomSheetContent(
     modifier: Modifier = Modifier,
     inventory: InventoryEntity?,
-    viewModel: ViewModel,
+    inventorySaleViewModel: InventorySaleViewModel,
     onDismiss:() -> Unit
 ) {
     val currentDate = PersianDateFormat("Y/m/d")
-        .format(viewModel.getPersianDate()).toString()
+        .format(inventorySaleViewModel.getPersianDate()).toString()
 
     var title by remember {
         mutableStateOf("")
@@ -413,9 +411,9 @@ fun AddEditInventoryBottomSheetContent(
                             buyPrice = buyPrice,
                         )
                         if(inventory == null){
-                            viewModel.onEvent(Event.InsertInventory(inventoryEntity))
+                            inventorySaleViewModel.onEvent(InvetorySaleEvent.InsertInventory(inventoryEntity))
                         }else{
-                            viewModel.onEvent(Event.UpdateInventory(inventoryEntity))
+                            inventorySaleViewModel.onEvent(InvetorySaleEvent.UpdateInventory(inventoryEntity))
                         }
                     },
                     shape = RoundedCornerShape(100),
