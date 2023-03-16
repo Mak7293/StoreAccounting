@@ -91,7 +91,7 @@ class ViewModel@Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _eventFlow.emit(UiEvent.FilteredHistoryList)
         }
-        filterState.value = true
+        filterState.value = dateRange != null
 
     }
     fun graphHistoryList(from: Long, until: Long): List<History>{

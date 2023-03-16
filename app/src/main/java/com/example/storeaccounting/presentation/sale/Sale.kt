@@ -73,11 +73,15 @@ fun Sale(
 ){
     Log.d("SaleRecomposition","@@@@@@@@")
 
-    val saleHistoryList = remember(key1 = viewModel.state.value.filteredHistory) {
+    val saleHistoryList = remember() {
         mutableStateOf(viewModel.state.value.filteredHistory.filter {
             it.transaction == TransactionState.Sale.state
         })
     }
+    LaunchedEffect(key1 = viewModel.state.value.filteredHistory[0].id){
+        saleHistoryList.value = viewModel.state.value.filteredHistory
+    }
+
     var graphState by remember {
         mutableStateOf(TEN_DAYS_GRAPH)
     }
@@ -89,11 +93,15 @@ fun Sale(
         )).values.toMutableList())
     }
 
+    Log.d("SaleRecomposition", viewModel.state.value.filteredHistory.toString())
+    Log.d("SaleRecomposition", viewModel.state.value.history.toString())
     LaunchedEffect(key1 = true){
         viewModel.eventFlow.collectLatest { event  ->
             when(event){
                 is ViewModel.UiEvent.FilteredHistoryList   ->  {
+                    Log.d("SaleRecomposition!!!-0", saleHistoryList.value.toString())
                     saleHistoryList.value = viewModel.state.value.filteredHistory
+                    Log.d("SaleRecomposition!!!-1", saleHistoryList.value.toString())
                 }
                 is ViewModel.UiEvent.SaleInventory  ->  {
                     delay(500L)
@@ -179,7 +187,6 @@ fun Sale(
                 ){
                     val a = graphList.value.map { it }.toTypedArray()
                     val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(*a))
-
                     Chart(
                         chart =
                             lineChart(
@@ -244,7 +251,6 @@ fun Sale(
                             onClick = {
                                 if(viewModel.filterState.value){
                                     viewModel.onEvent(Event.FilterSaleHistory(null))
-                                    viewModel.filterState.value = !viewModel.filterState.value
                                 }else{
                                     onClick(FabRoute.ResultFab)
                                 }
@@ -583,39 +589,44 @@ fun SaleBottomSheetContent(
                     modifier = Modifier.width(175.dp),
                     onClick = {
                         if(inventoryEntity.value != null){
-                            val newInventoryEntity = inventoryEntity.value!!.copy(
-                                date = currentDate,
-                                timeStamp = System.currentTimeMillis(),
-                                number = (inventoryEntity.value!!.number.toInt() - number.toInt()).toString(),
-                            )
-                            val newHistory = History(
-                                id=oldHistory?.id ,
-                                createdTimeStamp = newInventoryEntity.createdTimeStamp,
-                                remainingInventory =
+                            try{
+                                val newInventoryEntity = inventoryEntity.value!!.copy(
+                                    date = currentDate,
+                                    timeStamp = System.currentTimeMillis(),
+                                    number = (inventoryEntity.value!!.number.toInt() - number.toInt()).toString(),
+                                )
+                                val newHistory = History(
+                                    id=oldHistory?.id ,
+                                    createdTimeStamp = newInventoryEntity.createdTimeStamp,
+                                    remainingInventory =
                                     if(newInventoryEntity.createdTimeStamp == oldHistory?.createdTimeStamp){
                                         newInventoryEntity.number.toInt() + oldHistory.saleNumber.toInt()
                                     }else{
                                         newInventoryEntity.number.toInt()
                                     },
-                                transaction = TransactionState.Sale.state,
-                                title = newInventoryEntity.title,
-                                saleNumber = number,
-                                buyPrice = newInventoryEntity.buyPrice,
-                                sellPrice = newInventoryEntity.sellPrice,
-                                timeStamp = newInventoryEntity.timeStamp,
-                                date = newInventoryEntity.date
-                            )
-                            if(oldHistory == null){
-                                viewModel.onEvent(Event.SaleInventory(
-                                    inventoryEntity = newInventoryEntity,
-                                    history = newHistory
-                                ))
-                            }else{
-                                viewModel.onEvent(Event.UpdateSaleTransaction(
-                                    inventoryEntity = newInventoryEntity,
-                                    newHistory = newHistory,
-                                    oldHistory = oldHistory))
+                                    transaction = TransactionState.Sale.state,
+                                    title = newInventoryEntity.title,
+                                    saleNumber = number,
+                                    buyPrice = newInventoryEntity.buyPrice,
+                                    sellPrice = newInventoryEntity.sellPrice,
+                                    timeStamp = newInventoryEntity.timeStamp,
+                                    date = newInventoryEntity.date
+                                )
+                                if(oldHistory == null){
+                                    viewModel.onEvent(Event.SaleInventory(
+                                        inventoryEntity = newInventoryEntity,
+                                        history = newHistory
+                                    ))
+                                }else{
+                                    viewModel.onEvent(Event.UpdateSaleTransaction(
+                                        inventoryEntity = newInventoryEntity,
+                                        newHistory = newHistory,
+                                        oldHistory = oldHistory))
+                                }
+                            }catch (e: java.lang.NumberFormatException){
+                                Toast.makeText(context,"تعداد کالا تنها می تواند عدد باشد.",Toast.LENGTH_SHORT).show()
                             }
+
                         }else {
                             Toast.makeText(context,"لطفا ابتدا کالا مورد نظر را انتخاب کنید."
                                 ,Toast.LENGTH_SHORT).show()
