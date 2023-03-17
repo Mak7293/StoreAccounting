@@ -1,4 +1,4 @@
-package com.example.storeaccounting.domain.use_case
+package com.example.storeaccounting.domain.use_case.inventory_use_case
 
 import android.content.res.Resources
 import com.example.storeaccounting.R
@@ -8,7 +8,8 @@ import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.repository.InventoryRepository
 import com.example.storeaccounting.domain.util.TransactionState
 
-class AddInventory(private val repository: InventoryRepository, private val resource: Resources) {
+class UpdateInventory(private val repository: InventoryRepository,private val resource: Resources) {
+
     suspend operator fun invoke(inventoryEntity: InventoryEntity){
         if(inventoryEntity.title.isBlank()){
             throw InvalidTransactionException(resource.getString(R.string.blank_title_exception))
@@ -40,19 +41,19 @@ class AddInventory(private val repository: InventoryRepository, private val reso
         }else if (inventoryEntity.sellPrice.toInt() == 0){
             throw InvalidTransactionException(resource.getString(R.string.zero_sell_price_exception))
         }
-        repository.insertInventory(inventoryEntity)
         val history = History(
-            createdTimeStamp = inventoryEntity.timeStamp,
-            remainingInventory = inventoryEntity.number.toInt(),
-            transaction = TransactionState.Create.state,
+            createdTimeStamp = inventoryEntity.createdTimeStamp ,
+            transaction = TransactionState.Edit.state,
             title = inventoryEntity.title,
             saleNumber = "0",
-            sellPrice = inventoryEntity.sellPrice,
             buyPrice = inventoryEntity.buyPrice,
+            sellPrice = inventoryEntity.sellPrice,
+            timeStamp = inventoryEntity.timeStamp,
             date = inventoryEntity.date,
-            timeStamp = inventoryEntity.timeStamp
+            remainingInventory = inventoryEntity.number.toInt()
         )
         repository.insertHistory(history)
+        repository.updateInventory(inventoryEntity)
     }
     private fun checkNumberIsDigit(string: String):Boolean{
         for(i in string){

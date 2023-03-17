@@ -11,7 +11,8 @@ import com.example.storeaccounting.domain.custom_exception.InvalidTransactionExc
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.model.InventoryWithHistory
-import com.example.storeaccounting.domain.use_case.UseCases
+import com.example.storeaccounting.domain.use_case.inventory_use_case.InventoryUseCases
+import com.example.storeaccounting.domain.util.TransactionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,7 +25,7 @@ import kotlinx.coroutines.flow.*
 
 @HiltViewModel
 class InventorySaleViewModel@Inject constructor(
-    private val inventoryUseCases: UseCases,
+    private val inventoryUseCases: InventoryUseCases,
     private val applicationContext: Application
     ):ViewModel() {
 
@@ -97,8 +98,10 @@ class InventorySaleViewModel@Inject constructor(
     fun graphHistoryList(from: Long, until: Long): List<History>{
         var history: List<History> = listOf()
         history = _state.value.history.filter {
-            it.timeStamp in from until  until
+            it.timeStamp in from until  until &&
+                    it.transaction == TransactionState.Sale.state
         }
+        Log.d("resultList",history.toString())
         return history
     }
     fun mapSaleProfitByDay(list: List<History>):MutableMap<Int,Number>{
@@ -115,6 +118,9 @@ class InventorySaleViewModel@Inject constructor(
             }
             if (it.date == iDate){
                 totalProfitInDay += ((it.sellPrice.toLong() - it.buyPrice.toLong()) * it.saleNumber.toLong())
+            }
+            if(it == list.last()){
+                result.put(key = day,value = totalProfitInDay)
             }
         }
         result.remove(0)

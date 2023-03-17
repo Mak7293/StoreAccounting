@@ -73,13 +73,15 @@ fun Sale(
 ){
     Log.d("SaleRecomposition","@@@@@@@@")
 
-    val saleHistoryList = remember() {
+    val saleHistoryList = remember {
         mutableStateOf(inventorySaleViewModel.state.value.filteredHistory.filter {
             it.transaction == TransactionState.Sale.state
         })
     }
-    LaunchedEffect(key1 = inventorySaleViewModel.state.value.filteredHistory[0].id){
-        saleHistoryList.value = inventorySaleViewModel.state.value.filteredHistory
+    LaunchedEffect(key1 = inventorySaleViewModel.state.value.filteredHistory){
+        saleHistoryList.value = inventorySaleViewModel.state.value.filteredHistory.filter {
+            it.transaction == TransactionState.Sale.state
+        }
     }
 
     var graphState by remember {
@@ -93,15 +95,13 @@ fun Sale(
         )).values.toMutableList())
     }
 
-    Log.d("SaleRecomposition", inventorySaleViewModel.state.value.filteredHistory.toString())
-    Log.d("SaleRecomposition", inventorySaleViewModel.state.value.history.toString())
     LaunchedEffect(key1 = true){
         inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
                 is InventorySaleViewModel.UiEvent.FilteredHistoryList   ->  {
-                    Log.d("SaleRecomposition!!!-0", saleHistoryList.value.toString())
-                    saleHistoryList.value = inventorySaleViewModel.state.value.filteredHistory
-                    Log.d("SaleRecomposition!!!-1", saleHistoryList.value.toString())
+                    saleHistoryList.value = inventorySaleViewModel.state.value.filteredHistory.filter {
+                        it.transaction == TransactionState.Sale.state
+                    }
                 }
                 is InventorySaleViewModel.UiEvent.SaleInventory  ->  {
                     delay(500L)

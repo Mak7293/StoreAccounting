@@ -1,4 +1,4 @@
-package com.example.storeaccounting.domain.use_case
+package com.example.storeaccounting.domain.use_case.inventory_use_case
 
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.repository.InventoryRepository

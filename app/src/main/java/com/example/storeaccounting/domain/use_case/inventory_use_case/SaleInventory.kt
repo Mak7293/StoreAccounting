@@ -1,4 +1,4 @@
-package com.example.storeaccounting.domain.use_case
+package com.example.storeaccounting.domain.use_case.inventory_use_case
 
 import android.content.res.Resources
 import com.example.storeaccounting.R
@@ -6,7 +6,6 @@ import com.example.storeaccounting.domain.custom_exception.InvalidTransactionExc
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.repository.InventoryRepository
-import com.example.storeaccounting.domain.util.TransactionState
 
 class SaleInventory(private val repository: InventoryRepository, private val resource: Resources) {
 

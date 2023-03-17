@@ -1,6 +1,6 @@
-package com.example.storeaccounting.domain.use_case
+package com.example.storeaccounting.domain.use_case.inventory_use_case
 
-data class UseCases (
+data class InventoryUseCases (
     val addInventory: AddInventory,
     val getInventory: GetInventory,
     val deleteInventory: DeleteInventory,

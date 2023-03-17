@@ -31,9 +31,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
-import com.example.storeaccounting.domain.util.TransactionState
 import com.example.storeaccounting.presentation.General.General
-import com.example.storeaccounting.presentation.add_edit_credit_card.AddEditCreditCard
+import com.example.storeaccounting.presentation.add_edit_credit_card.AddEditCreditCardTopBar
 import com.example.storeaccounting.presentation.component.BottomNavigation
 import com.example.storeaccounting.presentation.inventory.AddEditInventoryBottomSheetContent
 import com.example.storeaccounting.presentation.inventory.Inventory
@@ -91,7 +90,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(route = NavigationRoute.AddEditCreditCard.route){
 
-                        AddEditCreditCard( parentNavController = parentNavController)
+                        AddEditCreditCardTopBar( parentNavController = parentNavController)
                         SetStatusBarTheme(window,it.destination.route!!)
                     }
                 }

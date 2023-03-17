@@ -10,6 +10,10 @@ val Teal200 = Color(0xFF03DAC5)
 
 val test = Color(0xFFFFE500)
 
+val creditCardLight = Color(0xFFFFE925)
+val creditCardMedium = Color(0xFFFFAF3A)
+val creditCardDark = Color(0xFFFF5722)
+
 //custom_blue_pallet
 val custom_blue_0 = Color(0xFF012A4A)
 val custom_blue_1 = Color(0xFF013A63)
