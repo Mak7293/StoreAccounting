@@ -1,16 +1,12 @@
 package com.example.storeaccounting.domain.repository
 
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Update
 import com.example.storeaccounting.domain.model.CreditCard
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.model.InventoryWithHistory
 import kotlinx.coroutines.flow.Flow
 
-interface InventoryRepository {
+interface Repository {
 
     suspend fun insertInventory(inventoryEntity: InventoryEntity)
     suspend fun deleteInventory(inventoryEntity: InventoryEntity)
@@ -24,4 +20,6 @@ interface InventoryRepository {
     suspend fun createCreditCard(creditCard: CreditCard)
     suspend fun deleteCreditCard(creditCard: CreditCard)
     suspend fun updateCreditCard(creditCard: CreditCard)
+    fun fetchAllCreditCard(): Flow<List<CreditCard>>
+    suspend fun fetchSpecificCreditCard(id: Int): CreditCard
 }

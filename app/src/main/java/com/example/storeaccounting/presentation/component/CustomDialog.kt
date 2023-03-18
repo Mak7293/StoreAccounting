@@ -1,14 +1,14 @@
 package com.example.storeaccounting.presentation.component
 
 import android.util.Log
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.materialIcon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +70,7 @@ fun CustomDeleteDialog(
                         .fillMaxWidth()
                         .width(2.dp)
                         .padding(horizontal = 5.dp),
-                        color = Color.DarkGray
+                        color = MaterialTheme.colors.primaryVariant
                     )
                     Text(
                         modifier = Modifier
@@ -128,6 +128,90 @@ fun CustomDeleteDialog(
                                 fontSize = 14.sp
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomContentDialog(
+    modifier: Modifier = Modifier,
+    title: String,
+    content: String,
+    setShowDialog: (Boolean) -> Unit,
+    onCancel:()  -> Unit,
+) {
+    RightToLeftLayout {
+        Dialog(
+            onDismissRequest = {
+                setShowDialog(true)
+            }
+        ){
+            Surface(
+                modifier = modifier,
+                shape = RoundedCornerShape(16.dp)
+            ){
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                ){
+                    Box (
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ){
+                        Text(
+                            modifier = Modifier
+                                .padding(5.dp)
+                                .align(Alignment.Center),
+                            text = title,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colors.primaryVariant,
+                            fontFamily = persian_font_regular,
+                            fontSize = 18.sp
+                        )
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.CenterEnd)
+                                .offset(x = (-10).dp)
+                                .clickable {
+                                    onCancel()
+                                }
+                            ,
+                            imageVector = Icons.Default.Cancel,
+                            contentDescription = "close",
+                            tint = MaterialTheme.colors.primaryVariant
+                        )
+                    }
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .width(2.dp)
+                            .padding(horizontal = 5.dp),
+                        color = MaterialTheme.colors.primaryVariant
+                    )
+                    Column(modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .verticalScroll(
+                            rememberScrollState()
+                        )
+                    ){
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(5.dp),
+                            text = content,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colors.primaryVariant,
+                            fontFamily = persian_font_regular,
+                            fontSize = 16.sp
+                        )
                     }
                 }
             }

@@ -32,7 +32,7 @@ import com.example.storeaccounting.presentation.component.CustomHistoryDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.util.FabRoute
-import com.example.storeaccounting.presentation.view_model.inventory_sale.InvetorySaleEvent
+import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleEvent
 import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleViewModel
 import com.example.storeaccounting.ui.theme.persian_font_medium
 import com.example.storeaccounting.ui.theme.persian_font_regular
@@ -145,7 +145,7 @@ fun InventoryContent(
             negativeButtonTitle = "خارج شدن",
             onSuccess = {
                 Log.d("delete",inventory.value.title)
-                inventorySaleViewModel.onEvent(InvetorySaleEvent.DeleteInventory(inventory.value))
+                inventorySaleViewModel.onEvent(InventorySaleEvent.DeleteInventory(inventory.value))
                 showDeleteDialog.value = false
             },
             onCancel = {
@@ -187,7 +187,7 @@ fun InventoryHistory(
                 _text = "",
             ){
                 text = it
-                inventorySaleViewModel.onEvent(InvetorySaleEvent.FilterInventory(it))
+                inventorySaleViewModel.onEvent(InventorySaleEvent.FilterInventory(it))
             }
             Divider(modifier = Modifier
                 .fillMaxWidth()
@@ -209,17 +209,12 @@ fun InventoryList(
     val inventoryList = remember {
         mutableStateOf(inventorySaleViewModel.state.value.filteredInventory.sortedBy { it.title })
     }
-    LaunchedEffect(key1 = inventorySaleViewModel.state.value.filteredInventory){
-        inventoryList.value = inventorySaleViewModel.state.value.filteredInventory
-    }
+    inventoryList.value = inventorySaleViewModel.state.value.filteredInventory
     LaunchedEffect(key1 = true){
         inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
-                is InventorySaleViewModel.UiEvent.FilteredInventoryList   ->  {
+                is InventorySaleViewModel.InventorySaleUiEvent.FilteredInventoryList   ->  {
                     inventoryList.value = inventorySaleViewModel.state.value.filteredInventory
-                    Log.d("filterInventory", "!!!!!!")
-                    Log.d("filterInventory", inventorySaleViewModel.state.value.filteredInventory.toString())
-                    Log.d("filterInventory", inventoryList.value.toString())
                 }
                 else -> {
 
@@ -236,7 +231,11 @@ fun InventoryList(
             key = { it }
         ){
             InventoryItem(
-                modifier = Modifier.animateItemPlacement(animationSpec = tween(durationMillis = 1500)),
+                modifier = Modifier.animateItemPlacement(
+                    animationSpec = tween(
+                        durationMillis = 500
+                    )
+                ),
                 item = inventoryList.value[it],
                 verticalPadding = 8.dp,
                 contentPadding = 8.dp,
@@ -293,7 +292,6 @@ fun AddEditInventoryBottomSheetContent(
         if(buyPrice != inventory?.buyPrice ){
             buyPrice = inventory?.buyPrice ?: ""
         }
-        Log.d("title", title)
     }
     Box(
         modifier = modifier,
@@ -411,9 +409,9 @@ fun AddEditInventoryBottomSheetContent(
                             buyPrice = buyPrice,
                         )
                         if(inventory == null){
-                            inventorySaleViewModel.onEvent(InvetorySaleEvent.InsertInventory(inventoryEntity))
+                            inventorySaleViewModel.onEvent(InventorySaleEvent.InsertInventory(inventoryEntity))
                         }else{
-                            inventorySaleViewModel.onEvent(InvetorySaleEvent.UpdateInventory(inventoryEntity))
+                            inventorySaleViewModel.onEvent(InventorySaleEvent.UpdateInventory(inventoryEntity))
                         }
                     },
                     shape = RoundedCornerShape(100),

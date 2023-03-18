@@ -42,4 +42,9 @@ sealed class NavigationRoute(
         icon = null,
         title = null
     )
+    object AddEditFactor: NavigationRoute(
+        route = "add_credit_factor",
+        icon = null,
+        title = null
+    )
 }

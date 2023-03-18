@@ -5,10 +5,10 @@ import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
-import com.example.storeaccounting.domain.repository.InventoryRepository
+import com.example.storeaccounting.domain.repository.Repository
 import com.example.storeaccounting.domain.util.TransactionState
 
-class AddInventory(private val repository: InventoryRepository, private val resource: Resources) {
+class AddInventory(private val repository: Repository, private val resource: Resources) {
     suspend operator fun invoke(inventoryEntity: InventoryEntity){
         if(inventoryEntity.title.isBlank()){
             throw InvalidTransactionException(resource.getString(R.string.blank_title_exception))

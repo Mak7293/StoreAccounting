@@ -1,5 +1,8 @@
 package com.example.storeaccounting.presentation.add_edit_credit_card
 
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,20 +20,112 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.storeaccounting.domain.model.CreditCard
+import com.example.storeaccounting.domain.util.TransactionState
+import com.example.storeaccounting.presentation.component.DescriptionEditText
 import com.example.storeaccounting.presentation.component.EditText
+import com.example.storeaccounting.presentation.util.Constants
 import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
+import com.example.storeaccounting.presentation.view_model.general.GeneralEvent
+import com.example.storeaccounting.presentation.view_model.general.GeneralViewModel
+import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleViewModel
 import com.example.storeaccounting.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
 @Composable
 fun AddEditCreditCardTopBar(
     parentNavController: NavController,
+    editCardId: Int?,
+    context: Context = LocalContext.current,
+    viewModel: GeneralViewModel = hiltViewModel()
 ) {
+    val list = viewModel.state.value.filteredCreditCard
+    val editCard: CreditCard? = if(editCardId != -1 && list.isNotEmpty() ){
+        list.first { it.id == editCardId }
+    }else{
+        null
+    }
+    var bankName by remember{
+        mutableStateOf( "")
+    }
+    var irShaba by remember{
+        mutableStateOf("")
+    }
+    var creditCardNumber by remember{
+        mutableStateOf("")
+    }
+    var userName by remember{
+        mutableStateOf("")
+    }
+    var expireDate by remember{
+        mutableStateOf("")
+    }
+    var cvv2 by remember{
+        mutableStateOf("")
+    }
+    var description by remember{
+        mutableStateOf("")
+    }
+    if(editCard?.bankName != null){
+        bankName = editCard.bankName
+    }
+    if(editCard?.irShaba != null){
+        irShaba = editCard.irShaba
+    }
+    if(editCard?.cardNumber != null){
+        creditCardNumber = editCard.cardNumber
+    }
+    if(editCard?.userName != null){
+        userName = editCard.userName
+    }
+    if(editCard?.expireDate != null){
+        expireDate = editCard.expireDate
+    }
+    if(editCard?.cvv2 != null){
+        cvv2 = editCard.cvv2
+    }
+    if(editCard?.description != null){
+        description = editCard.description
+    }
+    Log.d("listbank",bankName)
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event  ->
+            when(event){
+                is GeneralViewModel.GeneralUiEvent.CreateCreditCard   ->  {
+                    Toast.makeText(context,"کارت با موفقیت ذخیره شد.",Toast.LENGTH_SHORT).show()
+                    parentNavController.popBackStack(
+                        route = NavigationRoute.Main.route,
+                        inclusive = false
+                    )
+                }
+                is GeneralViewModel.GeneralUiEvent.ShowToast   ->   {
+                    Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
+                }
+                is GeneralViewModel.GeneralUiEvent.UpdateCreditCard   ->  {
+                    Toast.makeText(context,"کارت با موفقیت به روز رسانی شد.",Toast.LENGTH_SHORT).show()
+                    parentNavController.popBackStack(
+                        route = NavigationRoute.Main.route,
+                        inclusive = false
+                    )
+                }
+                else  ->  {
+
+                }
+            }
+        }
+    }
     Scaffold(
         topBar = {
             AddEditCreditCardTopBar(
@@ -42,7 +137,21 @@ fun AddEditCreditCardTopBar(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // do something
+                    val creditCard = CreditCard(
+                        bankName = bankName,
+                        cardNumber = creditCardNumber,
+                        cvv2 = cvv2,
+                        description = description,
+                        expireDate = expireDate,
+                        irShaba = irShaba,
+                        userName = userName
+                    )
+                    if(editCard == null){
+                        viewModel.onEvent(GeneralEvent.CreateCreditCard(creditCard))
+                    }else{
+                        viewModel.onEvent(GeneralEvent.UpdateCreditCard(creditCard.copy(id = editCard.id)))
+                    }
+
                 },
                 backgroundColor = MaterialTheme.colors.primary
             ){
@@ -55,27 +164,6 @@ fun AddEditCreditCardTopBar(
             }
         }
     ){
-        var bankName by remember{
-            mutableStateOf("")
-        }
-        var irShaba by remember{
-            mutableStateOf("")
-        }
-        var creditCardNumber by remember{
-            mutableStateOf("")
-        }
-        var userName by remember{
-            mutableStateOf("")
-        }
-        var expireDate by remember{
-            mutableStateOf("")
-        }
-        var cvv2 by remember{
-            mutableStateOf("")
-        }
-        var description by remember{
-            mutableStateOf("")
-        }
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Top,
@@ -95,8 +183,7 @@ fun AddEditCreditCardTopBar(
                 creditCardNumber = creditCardNumber,
                 userName = userName,
                 expireDate = expireDate,
-                cvv2 = cvv2,
-                description = description
+                cvv2 = cvv2
             )
             Divider(
                 modifier = Modifier
@@ -119,7 +206,7 @@ fun AddEditCreditCardTopBar(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 8.dp),
-                    _text =  ""
+                    _text =  bankName
                 ){
                     bankName = it
                 }
@@ -128,7 +215,7 @@ fun AddEditCreditCardTopBar(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 8.dp),
-                    _text =  ""
+                    _text =  irShaba
                 ){
                     irShaba = it
                 }
@@ -137,7 +224,7 @@ fun AddEditCreditCardTopBar(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 8.dp),
-                    _text =  ""
+                    _text =  creditCardNumber
                 ){
                     creditCardNumber = it
                 }
@@ -146,16 +233,16 @@ fun AddEditCreditCardTopBar(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 8.dp),
-                    _text =  ""
+                    _text =  userName
                 ){
                     userName = it
                 }
                 EditText(
-                    hint = "تاریخ انقظاء کارت را وارد کنید ...",
+                    hint = "تاریخ انقضا کارت را وارد کنید ...",
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 8.dp),
-                    _text =  ""
+                    _text =  expireDate
                 ){
                     expireDate = it
                 }
@@ -164,25 +251,29 @@ fun AddEditCreditCardTopBar(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 8.dp),
-                    _text =  ""
+                    _text =  cvv2
                 ){
                     cvv2 = it
                 }
-                EditText(
+                DescriptionEditText(
                     hint = "توضیحات تکمیلی را وارد کنید...",
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 15.dp, vertical = 8.dp),
-                    _text =  ""
+                    _text =  description
                 ){
                     description = it
                 }
-                Spacer(modifier = Modifier.fillMaxWidth().height(height = 100.dp))
+                Spacer(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(
+                        height = 100.dp
+                    )
+                )
             }
         }
     }
 }
-
 
 @Composable
 fun CreditCard(
@@ -196,8 +287,9 @@ fun CreditCard(
     userName: String = "",
     expireDate: String = "",
     cvv2: String = "",
-    description: String = "",
-) {
+    smallFontSize: TextUnit = 16.sp,
+    bigFontSize: TextUnit = 20.sp
+){
     BoxWithConstraints(
         modifier = modifier
             .padding(7.5.dp)
@@ -267,46 +359,52 @@ fun CreditCard(
             Text(
                 text = if (bankName.isEmpty()) "نام بانک" else bankName,
                 fontFamily = persian_font_semi_bold,
-                fontSize = 16.sp,
+                fontSize = smallFontSize,
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .align(Alignment.TopEnd),
+                color = Color.Black
             )
             Text(
                 text = if (irShaba.isEmpty()) "IR00  0000  0000  0000  0000  0000  00" else irShaba,
                 fontFamily = persian_font_semi_bold,
-                fontSize = 16.sp,
+                fontSize = smallFontSize,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = (-28).dp)
+                    .offset(y = (-28).dp),
+                color = Color.Black
             )
             Text(
                 text = if (creditCardNumber.isEmpty()) "XXXX-XXXX-XXXX-XXXX" else creditCardNumber,
                 fontFamily = persian_font_semi_bold,
-                fontSize = 20.sp,
+                fontSize = bigFontSize,
                 modifier = Modifier
-                    .align(Alignment.Center)
+                    .align(Alignment.Center),
+                color = Color.Black
             )
             Text(
                 text = if (userName.isEmpty()) "نام و نام خانوادگی" else userName,
                 fontFamily = persian_font_semi_bold,
-                fontSize = 16.sp,
+                fontSize = smallFontSize,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .offset(y = 25.dp)
+                    .offset(y = 25.dp),
+                color = Color.Black
             )
             Text(
-                text = if (expireDate.isEmpty()) "تاریخ انقضا" else "تاریخ انقضاء: $expireDate",
+                text = if (expireDate.isEmpty()) "تاریخ انقضا" else "تاریخ انقضا: $expireDate",
                 fontFamily = persian_font_semi_bold,
-                fontSize = 16.sp,
+                fontSize = smallFontSize,
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
+                    .align(Alignment.BottomEnd),
+                color = Color.Black
             )
             Text(
                 text =if (cvv2.isEmpty()) "cvv2" else "cvv2: $cvv2",
                 fontFamily = persian_font_semi_bold,
-                fontSize = 16.sp,
+                fontSize = smallFontSize,
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(Alignment.BottomStart),
+                color = Color.Black
             )
         }
     }

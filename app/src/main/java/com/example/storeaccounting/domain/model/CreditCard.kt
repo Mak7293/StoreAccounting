@@ -3,7 +3,7 @@ package com.example.storeaccounting.domain.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "credit_card")
+@Entity(tableName = "credit_card_table")
 data class CreditCard(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,

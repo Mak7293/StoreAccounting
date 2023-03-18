@@ -32,7 +32,7 @@ class InventorySaleViewModel@Inject constructor(
     private val _state = mutableStateOf<InventorySaleViewModelState>(InventorySaleViewModelState())
     val state: State<InventorySaleViewModelState> = _state
 
-    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    private val _eventFlow = MutableSharedFlow<InventorySaleUiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     private var getInventoryJob: Job? = null
@@ -45,35 +45,35 @@ class InventorySaleViewModel@Inject constructor(
         getInventory()
         getAllHistory()
     }
-    fun onEvent(invetorySaleEvent: InvetorySaleEvent){
-        when(invetorySaleEvent){
-            is InvetorySaleEvent.InsertInventory ->  {
-                insertInventoryToDatabase(invetorySaleEvent.inventoryEntity)
+    fun onEvent(inventorySaleEvent: InventorySaleEvent){
+        when(inventorySaleEvent){
+            is InventorySaleEvent.InsertInventory ->  {
+                insertInventoryToDatabase(inventorySaleEvent.inventoryEntity)
             }
-            is InvetorySaleEvent.DeleteInventory ->  {
-                deleteTransactionFromDatabase(invetorySaleEvent.inventoryEntity)
+            is InventorySaleEvent.DeleteInventory ->  {
+                deleteTransactionFromDatabase(inventorySaleEvent.inventoryEntity)
             }
-            is InvetorySaleEvent.UpdateInventory ->  {
-                updateInventory(invetorySaleEvent.inventoryEntity)
+            is InventorySaleEvent.UpdateInventory ->  {
+                updateInventory(inventorySaleEvent.inventoryEntity)
             }
-            is InvetorySaleEvent.SaleInventory  ->  {
-                saleInventory(invetorySaleEvent.inventoryEntity,invetorySaleEvent.history)
+            is InventorySaleEvent.SaleInventory  ->  {
+                saleInventory(inventorySaleEvent.inventoryEntity,inventorySaleEvent.history)
             }
-            is InvetorySaleEvent.UpdateSaleTransaction  ->  {
+            is InventorySaleEvent.UpdateSaleTransaction  ->  {
                 updateSaleHistory(
-                    inventoryEntity = invetorySaleEvent.inventoryEntity,
-                    newHistory = invetorySaleEvent.newHistory,
-                    oldHistory = invetorySaleEvent.oldHistory
+                    inventoryEntity = inventorySaleEvent.inventoryEntity,
+                    newHistory = inventorySaleEvent.newHistory,
+                    oldHistory = inventorySaleEvent.oldHistory
                 )
             }
-            is InvetorySaleEvent.DeleteSaleHistory  ->   {
-                deleteSaleHistory(invetorySaleEvent.history)
+            is InventorySaleEvent.DeleteSaleHistory  ->   {
+                deleteSaleHistory(inventorySaleEvent.history)
             }
-            is InvetorySaleEvent.FilterSaleHistory  ->   {
-                filteredHistory(invetorySaleEvent.map)
+            is InventorySaleEvent.FilterSaleHistory  ->   {
+                filteredHistory(inventorySaleEvent.map)
             }
-            is InvetorySaleEvent.FilterInventory   ->   {
-                filteredInventory(invetorySaleEvent.query)
+            is InventorySaleEvent.FilterInventory   ->   {
+                filteredInventory(inventorySaleEvent.query)
             }
         }
     }
@@ -90,7 +90,7 @@ class InventorySaleViewModel@Inject constructor(
             _state.value.filteredHistory = _state.value.history
         }
         viewModelScope.launch(Dispatchers.IO) {
-            _eventFlow.emit(UiEvent.FilteredHistoryList)
+            _eventFlow.emit(InventorySaleUiEvent.FilteredHistoryList)
         }
         filterState.value = dateRange != null
 
@@ -138,7 +138,7 @@ class InventorySaleViewModel@Inject constructor(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _eventFlow.emit(
-                UiEvent.FilteredInventoryList
+                InventorySaleUiEvent.FilteredInventoryList
             )
         }
         Log.d("filterInventory", state.value.filteredInventory.toString())
@@ -148,12 +148,12 @@ class InventorySaleViewModel@Inject constructor(
             try {
                 inventoryUseCases.deleteSaleHistory(history)
                 _eventFlow.emit(
-                    UiEvent.DeleteSaleHistory
+                    InventorySaleUiEvent.DeleteSaleHistory
                 )
             }catch (e: SQLException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(
+                    InventorySaleUiEvent.ShowToast(
                         message = applicationContext.resources.getString(R.string.alert_delete_sale_inventory)
                     )
                 )
@@ -173,17 +173,17 @@ class InventorySaleViewModel@Inject constructor(
                     oldHistory = oldHistory
                 )
                 _eventFlow.emit(
-                    UiEvent.UpdateSaleHistory
+                    InventorySaleUiEvent.UpdateSaleHistory
                 )
             }catch (e: InvalidTransactionException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message = e.message!!)
+                    InventorySaleUiEvent.ShowToast(message = e.message!!)
                 )
             }catch (e: SQLException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(
+                    InventorySaleUiEvent.ShowToast(
                         message = applicationContext.resources.getString(R.string.alert_update_sale_inventory)
                     )
                 )
@@ -202,12 +202,12 @@ class InventorySaleViewModel@Inject constructor(
                     history = history
                 )
                 _eventFlow.emit(
-                    UiEvent.SaleInventory
+                    InventorySaleUiEvent.SaleInventory
                 )
             }catch (e: InvalidTransactionException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message = e.message!!)
+                    InventorySaleUiEvent.ShowToast(message = e.message!!)
                 )
             }
         }
@@ -217,18 +217,18 @@ class InventorySaleViewModel@Inject constructor(
             try{
                 inventoryUseCases.updateInventory(inventoryEntity)
                 _eventFlow.emit(
-                    UiEvent.UpdateInventory
+                    InventorySaleUiEvent.UpdateInventory
                 )
 
             }catch (e: InvalidTransactionException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message = e.message!!)
+                    InventorySaleUiEvent.ShowToast(message = e.message!!)
                 )
             }catch (e: SQLException){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(
+                    InventorySaleUiEvent.ShowToast(
                         message = applicationContext.resources.getString(R.string.alert_sale_inventory)
                     )
                 )
@@ -240,11 +240,11 @@ class InventorySaleViewModel@Inject constructor(
              try {
                  inventoryUseCases.addInventory(inventoryEntity)
                  _eventFlow.emit(
-                     UiEvent.SaveInventory
+                     InventorySaleUiEvent.SaveInventory
                  )
             }catch (e: InvalidTransactionException){
                 _eventFlow.emit(
-                    UiEvent.ShowToast(message = e.message!!)
+                    InventorySaleUiEvent.ShowToast(message = e.message!!)
                 )
             }
         }
@@ -254,12 +254,12 @@ class InventorySaleViewModel@Inject constructor(
             try {
                 inventoryUseCases.deleteInventory(inventoryEntity)
                 _eventFlow.emit(
-                    UiEvent.DeleteInventory
+                    InventorySaleUiEvent.DeleteInventory
                 )
             }catch(e: Exception){
                 e.printStackTrace()
                 _eventFlow.emit(
-                    UiEvent.ShowToast(
+                    InventorySaleUiEvent.ShowToast(
                         message =
                         applicationContext.resources.getString(R.string.alert_delete_inventory)
                     )
@@ -274,16 +274,16 @@ class InventorySaleViewModel@Inject constructor(
     suspend fun getHistoryByInventory(createdTimeStamp: Long):InventoryWithHistory{
         return inventoryUseCases.getHistoryListForSpecificInventory(createdTimeStamp)
     }
-    sealed class UiEvent{
-        data class ShowToast(val message: String): UiEvent()
-        object SaveInventory: UiEvent()
-        object UpdateInventory: UiEvent()
-        object DeleteInventory: UiEvent()
-        object SaleInventory: UiEvent()
-        object UpdateSaleHistory: UiEvent()
-        object DeleteSaleHistory: UiEvent()
-        object FilteredHistoryList: UiEvent()
-        object FilteredInventoryList: UiEvent()
+    sealed class InventorySaleUiEvent{
+        data class ShowToast(val message: String): InventorySaleUiEvent()
+        object SaveInventory: InventorySaleUiEvent()
+        object UpdateInventory: InventorySaleUiEvent()
+        object DeleteInventory: InventorySaleUiEvent()
+        object SaleInventory: InventorySaleUiEvent()
+        object UpdateSaleHistory: InventorySaleUiEvent()
+        object DeleteSaleHistory: InventorySaleUiEvent()
+        object FilteredHistoryList: InventorySaleUiEvent()
+        object FilteredInventoryList: InventorySaleUiEvent()
     }
     private fun getInventory(){
         getInventoryJob?.cancel()

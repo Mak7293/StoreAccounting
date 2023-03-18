@@ -26,13 +26,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.presentation.General.General
 import com.example.storeaccounting.presentation.add_edit_credit_card.AddEditCreditCardTopBar
+import com.example.storeaccounting.presentation.add_edit_factor.AddEditFactor
 import com.example.storeaccounting.presentation.component.BottomNavigation
 import com.example.storeaccounting.presentation.inventory.AddEditInventoryBottomSheetContent
 import com.example.storeaccounting.presentation.inventory.Inventory
@@ -40,8 +43,10 @@ import com.example.storeaccounting.presentation.sale.ResultBottomSheetContent
 import com.example.storeaccounting.presentation.sale.Sale
 import com.example.storeaccounting.presentation.sale.SaleBottomSheetContent
 import com.example.storeaccounting.presentation.setting.Setting
+import com.example.storeaccounting.presentation.util.Constants.CREDIT_CARD_ID
 import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
+import com.example.storeaccounting.presentation.view_model.general.GeneralViewModel
 import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleViewModel
 import com.example.storeaccounting.ui.theme.StoreAccountingTheme
 import com.razaghimahdi.compose_persian_date.core.rememberPersianDataPicker
@@ -88,10 +93,35 @@ class MainActivity : ComponentActivity() {
                             window = window
                         )
                     }
-                    composable(route = NavigationRoute.AddEditCreditCard.route){
-
-                        AddEditCreditCardTopBar( parentNavController = parentNavController)
-                        SetStatusBarTheme(window,it.destination.route!!)
+                    composable(
+                        route = "${NavigationRoute.AddEditCreditCard.route}/{$CREDIT_CARD_ID}",
+                        arguments = listOf(
+                            navArgument(CREDIT_CARD_ID){
+                                type = NavType.IntType
+                                this.defaultValue = -1
+                            }
+                        )
+                    ){
+                        SetStatusBarTheme(window,it.destination.route!!.split("/").first())
+                        AddEditCreditCardTopBar(
+                            parentNavController = parentNavController,
+                            editCardId = it.arguments?.getInt(CREDIT_CARD_ID)
+                        )
+                    }
+                    composable(
+                        route = NavigationRoute.AddEditFactor.route,
+                        /*arguments = listOf(
+                            navArgument(CREDIT_CARD_ID){
+                                type = NavType.IntType
+                                this.defaultValue = -1
+                            }
+                        )*/
+                    ){
+                        SetStatusBarTheme(window,it.destination.route!!.split("/").first())
+                        AddEditFactor(
+                            parentNavController = parentNavController,
+                            //editCardId = it.arguments?.getInt(CREDIT_CARD_ID)
+                        )
                     }
                 }
 
@@ -138,11 +168,11 @@ fun Main(
     LaunchedEffect(key1 = true){
         inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
-                is  InventorySaleViewModel.UiEvent.ShowToast   ->   {
+                is  InventorySaleViewModel.InventorySaleUiEvent.ShowToast   ->   {
                     Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
 
                 }
-                is  InventorySaleViewModel.UiEvent.SaveInventory  ->  {
+                is  InventorySaleViewModel.InventorySaleUiEvent.SaveInventory  ->  {
                     scope.launch {
                         if(sheetState.isCollapsed) {
                             sheetState.expand()
@@ -151,10 +181,10 @@ fun Main(
                         }
                     }
                 }
-                is InventorySaleViewModel.UiEvent.DeleteInventory   -> {
+                is InventorySaleViewModel.InventorySaleUiEvent.DeleteInventory   -> {
                     Toast.makeText(context,"کالا با موفقیت حذف شد.",Toast.LENGTH_SHORT).show()
                 }
-                is InventorySaleViewModel.UiEvent.UpdateInventory   -> {
+                is InventorySaleViewModel.InventorySaleUiEvent.UpdateInventory   -> {
                     scope.launch {
                         if(sheetState.isCollapsed) {
                             sheetState.expand()
@@ -163,7 +193,7 @@ fun Main(
                         }
                     }
                 }
-                is InventorySaleViewModel.UiEvent.SaleInventory   ->   {
+                is InventorySaleViewModel.InventorySaleUiEvent.SaleInventory   ->   {
                     Toast.makeText(context,"فروش کالا با موفقیت ثبت شد.",Toast.LENGTH_SHORT).show()
                     scope.launch {
                         if(sheetState.isCollapsed) {
@@ -173,7 +203,7 @@ fun Main(
                         }
                     }
                 }
-                is InventorySaleViewModel.UiEvent.UpdateSaleHistory  ->  {
+                is InventorySaleViewModel.InventorySaleUiEvent.UpdateSaleHistory  ->  {
                     Toast.makeText(context,"تراکنش فروش با موقیت به روز رسانی شد.",Toast.LENGTH_SHORT).show()
                     scope.launch {
                         if(sheetState.isCollapsed) {
@@ -183,7 +213,7 @@ fun Main(
                         }
                     }
                 }
-                is InventorySaleViewModel.UiEvent.DeleteSaleHistory   ->   {
+                is InventorySaleViewModel.InventorySaleUiEvent.DeleteSaleHistory   ->   {
                     Toast.makeText(context,"تراکنش فروش با موقیت به حذف شد.",Toast.LENGTH_SHORT).show()
                 }
                 else -> {}
@@ -445,6 +475,29 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
             }
         }
         NavigationRoute.AddEditCreditCard.route  ->  {
+            if (isSystemInDarkTheme()) {
+                val backgroundArgb = MaterialTheme.colors.onSurface.toArgb()
+                window.statusBarColor = backgroundArgb
+                /*val windowInsetController = ViewCompat.getWindowInsetsController(window.decorView)
+                windowInsetController?.isAppearanceLightStatusBars = false*/
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        0, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            } else {
+                val backgroundArgb = MaterialTheme.colors.onSurface.toArgb()
+                window.statusBarColor = backgroundArgb
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                    window.insetsController?.setSystemBarsAppearance(
+                        APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
+                }else{
+                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            }
+        }
+        NavigationRoute.AddEditFactor.route  ->  {
             if (isSystemInDarkTheme()) {
                 val backgroundArgb = MaterialTheme.colors.onSurface.toArgb()
                 window.statusBarColor = backgroundArgb

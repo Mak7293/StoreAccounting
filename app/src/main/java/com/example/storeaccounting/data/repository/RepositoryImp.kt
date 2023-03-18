@@ -6,13 +6,13 @@ import com.example.storeaccounting.domain.model.CreditCard
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.model.InventoryWithHistory
-import com.example.storeaccounting.domain.repository.InventoryRepository
+import com.example.storeaccounting.domain.repository.Repository
 import kotlinx.coroutines.flow.Flow
 
-class InventoryRepositoryImp(
+class RepositoryImp(
     private val inventoryDao: InventoryDao,
     private val creditCardDao: CreditCardDao
-    ): InventoryRepository {
+    ): Repository {
 
     override suspend fun insertInventory(inventoryEntity: InventoryEntity) {
         inventoryDao.insertInventory(inventoryEntity)
@@ -49,5 +49,11 @@ class InventoryRepositoryImp(
     }
     override suspend fun updateCreditCard(creditCard: CreditCard) {
         creditCardDao.updateCreditCard(creditCard)
+    }
+    override fun fetchAllCreditCard(): Flow<List<CreditCard>> {
+        return creditCardDao.fetchAllCreditCard()
+    }
+    override suspend fun fetchSpecificCreditCard(id: Int): CreditCard {
+        return creditCardDao.fetchSpecificCreditCard(id)
     }
 }

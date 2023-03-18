@@ -5,9 +5,9 @@ import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
-import com.example.storeaccounting.domain.repository.InventoryRepository
+import com.example.storeaccounting.domain.repository.Repository
 
-class SaleInventory(private val repository: InventoryRepository, private val resource: Resources) {
+class SaleInventory(private val repository: Repository, private val resource: Resources) {
 
     suspend operator fun invoke (
         inventoryEntity: InventoryEntity, 

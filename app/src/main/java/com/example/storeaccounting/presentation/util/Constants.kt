@@ -10,4 +10,6 @@ object Constants {
      const val TEN_DAYS_GRAPH = "10_days_graph"
      const val THIRTY_DAYS_GRAPH = "30_days_graph"
 
+     const val CREDIT_CARD_ID = "credit_card_id"
+
 }

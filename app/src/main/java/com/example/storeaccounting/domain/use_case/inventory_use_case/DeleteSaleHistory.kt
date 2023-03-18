@@ -1,9 +1,9 @@
 package com.example.storeaccounting.domain.use_case.inventory_use_case
 
 import com.example.storeaccounting.domain.model.History
-import com.example.storeaccounting.domain.repository.InventoryRepository
+import com.example.storeaccounting.domain.repository.Repository
 
-class DeleteSaleHistory(private val repository: InventoryRepository) {
+class DeleteSaleHistory(private val repository: Repository) {
 
     suspend operator fun invoke(history: History){
         val rollbackInventory = repository.getHistoriesByInventoryTimeStamp(history.createdTimeStamp)
