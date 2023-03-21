@@ -33,6 +33,7 @@ import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.util.TransactionState
 import com.example.storeaccounting.presentation.component.CustomDeleteDialog
 import com.example.storeaccounting.presentation.component.EditText
+import com.example.storeaccounting.presentation.component.FactorEditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.component.date_picker.PersianDataPicker
 import com.example.storeaccounting.presentation.util.Constants.DAY

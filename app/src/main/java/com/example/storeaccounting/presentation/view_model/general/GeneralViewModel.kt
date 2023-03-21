@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import saman.zamani.persiandate.PersianDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -125,6 +126,9 @@ class GeneralViewModel@Inject constructor(
         object UpdateCreditCard: GeneralUiEvent()
         object FilteredCreditCard: GeneralUiEvent()
 
+    }
+    fun getPersianDate(): PersianDate {
+        return PersianDate()
     }
     private fun getAllCreditCard(){
         getCreditCardJob?.cancel()

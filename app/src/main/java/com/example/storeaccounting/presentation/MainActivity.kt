@@ -1,6 +1,9 @@
 package com.example.storeaccounting.presentation
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -130,6 +133,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("SourceLockedOrientationActivity")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Main(
@@ -139,6 +143,7 @@ fun Main(
     context: Context = LocalContext.current,
     window: Window
 ) {
+    (context as Activity).requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     Log.d("MainRecomposition","@@@@@@@@")
     val fabState = remember {
         mutableStateOf<String>("")
