@@ -2,10 +2,17 @@ package com.example.storeaccounting.presentation.add_edit_factor
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -17,8 +24,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -26,6 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.storeaccounting.R
 import com.example.storeaccounting.domain.util.Utility
 import com.example.storeaccounting.presentation.component.FactorEditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
@@ -792,7 +805,16 @@ fun AddDeleteRow(
 }
 
 @Composable
-fun SignSection() {
+fun SignSection(
+    context: Context = LocalContext.current,
+) {
+    val result = remember { mutableStateOf<Uri?>(null) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
+        if (it != null){
+            result.value = it
+            Log.d("uri",it.toString())
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -821,8 +843,51 @@ fun SignSection() {
             fontFamily = persian_font_semi_bold,
             fontSize = 16.sp
         )
-    }
+        Box(
+            modifier = Modifier
+                .padding(start = 100.dp)
+                .width(width = 90.dp)
+                .height(height = 90.dp)
+                .border(
+                    width = 1.5.dp,
+                    color = Color.Black,
+                    shape = RoundedCornerShape(
+                        size = 15.dp
+                    )
+                )
+                .align(Alignment.CenterStart)
+                .clickable {
+                    launcher.launch("*/*")
+                },
+            contentAlignment = Alignment.Center
+        ){
+            if(result.value == null){
+                Image(
+                    modifier = Modifier.size(40.dp),
+                    imageVector = Icons.Default.AdsClick ,
+                    contentDescription = "add Sign picture"
+                )
+            }else{
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(result.value)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.ic_pick_sign),
+                    error = painterResource(R.drawable.ic_error),
+                    onError = {
+                              Toast.makeText(context,"خطا در بارگزاری تصویر امضا، لطفا دوباره تلاش کنید.",
+                                  Toast.LENGTH_SHORT).show()
+                    },
+                    contentDescription = "add Sign picture",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(70.dp)
+                )
+            }
 
+
+        }
+    }
 }
 @Composable
 fun AddEditFactorTopBar(
