@@ -3,7 +3,7 @@ package com.example.storeaccounting.domain.util
 import android.util.Log
 
 object Utility {
-    val mapString: Map<String,String> = mapOf(
+    private val mapString: Map<String,String> = mapOf(
         "0" to "صفر","1" to "یک","2" to "دو","3" to "سه","4" to "چهار","5" to "پنج","6" to "شش","7" to "هفت","8" to "هشت","9" to "نه","10" to "ده",
         "11" to "یازده","12" to "دوازده","13" to "سیزده","14" to "چهارده","15" to "پانزده","16" to "شانزده","17" to "هفده","18" to "هجده","19" to "نوزده",
         "20" to "بیست","30" to "سی","40" to "چهل","50" to "پنجاه","60" to "شست","70" to "هفتاد","80" to "هشتاد","90" to "نود",

@@ -1,18 +1,20 @@
 package com.example.storeaccounting.presentation.add_edit_factor
 
+import android.Manifest
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.graphics.Bitmap
+import android.media.MediaScannerConnection
 import android.net.Uri
-import android.util.Log
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -24,8 +26,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -34,17 +36,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.storeaccounting.R
+import com.example.storeaccounting.domain.util.CaptureFactorImageFromComposeView
 import com.example.storeaccounting.domain.util.Utility
 import com.example.storeaccounting.presentation.component.FactorEditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.util.NavigationRoute
+import com.example.storeaccounting.presentation.view_model.general.GeneralEvent
 import com.example.storeaccounting.presentation.view_model.general.GeneralViewModel
 import com.example.storeaccounting.ui.theme.*
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import saman.zamani.persiandate.PersianDateFormat
 
 
@@ -54,19 +61,93 @@ fun AddEditFactor(
     context: Context = LocalContext.current,
     viewModel: GeneralViewModel = hiltViewModel()
 ) {
+
     (context as Activity).requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event  ->
+            when(event){
+                is GeneralViewModel.GeneralUiEvent.ShowToast   ->   {
+                    Toast.makeText(context,event.message, Toast.LENGTH_SHORT).show()
+                }
+                is GeneralViewModel.GeneralUiEvent.ShareFactor -> {
+                    (context as Activity).shareFactor(event.path)
+                }
+                else  ->  {}
+            }
+        }
+    }
     var rowNumber by remember {
         mutableStateOf(0)
     }
     val list = remember{
         mutableStateOf<SnapshotStateList<Int>>(mutableStateListOf())
     }
-    var date by remember{
+    var date = remember{
         mutableStateOf("")
     }
-    var showSign by remember{
+    var showSign = remember{
         mutableStateOf(false)
+    }
+    var key: String = remember{
+        ""
+    }
+    var permissionAlertDialog by remember {
+        mutableStateOf(false)
+    }
+    val scope = rememberCoroutineScope()
+    var jetCaptureView: MutableState<CaptureFactorImageFromComposeView>? = null
+    val readAndWriteStorageResultLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ){ permissions ->
+        permissions.entries.forEach {
+            val permissionName = it.key
+            val isGranted = it.value
+            if (isGranted) {
+                if (permissionName == WRITE_EXTERNAL_STORAGE
+                    && key == WRITE_EXTERNAL_STORAGE){
+
+                    scope.launch {
+                        viewModel.onEvent(
+                            GeneralEvent.SaveFactorInPdf(
+                                jetCaptureView?.value?.capture(
+                                    jetCaptureView?.value as
+                                            CaptureFactorImageFromComposeView
+                                )
+                            )
+                        )
+                    }
+
+                } else if(permissionName == READ_EXTERNAL_STORAGE
+                    && key == READ_EXTERNAL_STORAGE){
+                        // do something
+                }
+            }else{
+                if (permissionName == WRITE_EXTERNAL_STORAGE
+                    && key == WRITE_EXTERNAL_STORAGE){
+                    permissionAlertDialog = true
+
+                }else if(permissionName == READ_EXTERNAL_STORAGE
+                    && key == READ_EXTERNAL_STORAGE){
+                    permissionAlertDialog = true
+                }
+            }
+        }
+    }
+    if (permissionAlertDialog){
+        PermissionDialog(
+            onDismiss = {
+                  permissionAlertDialog = false
+            },
+            onGoToAppSettingsClick = {
+                (context as Activity).openAppSettings()
+            },
+            modifier = Modifier
+                .width(width = 300.dp)
+                .height(height = 200.dp),
+            shape = RoundedCornerShape(size = 20.dp),
+            backgroundColor = MaterialTheme.colors.background
+        )
     }
     Scaffold(
         topBar = {
@@ -79,7 +160,11 @@ fun AddEditFactor(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // do something
+                    key = WRITE_EXTERNAL_STORAGE
+                    readAndWriteStorageResultLauncher.launch(
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE)
+                    )
                 },
                 backgroundColor = MaterialTheme.colors.primary
             ){
@@ -101,26 +186,65 @@ fun AddEditFactor(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            SaleFactorUi(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = custom_blue_7,
-                        shape = RoundedCornerShape(
-                            size = 25.dp
+
+            jetCaptureView = remember { mutableStateOf(
+                CaptureFactorImageFromComposeView(
+                    list = list.value,
+                    date = date,
+                    showSign = showSign,
+                    modifier = mutableStateOf(
+                        Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = custom_blue_7,
+                            shape = RoundedCornerShape(
+                                size = 25.dp
+                            )
                         )
-                    )
-                    .border(
-                        width = 2.dp,
-                        color = custom_blue_3,
-                        shape = RoundedCornerShape(
-                            size = 25.dp
+                        .border(
+                            width = 2.dp,
+                            color = custom_blue_3,
+                            shape = RoundedCornerShape(
+                                size = 25.dp
+                            )
                         )
-                    )
-                    .padding(all = 8.dp),
-                list = list.value,
-                date = date,
-                showSign = showSign
+                        .padding(all = 8.dp)
+                    ) ,
+                    context = context
+                )
+            )
+            }
+            AndroidView(modifier = Modifier.wrapContentSize(),
+                factory = {
+                    CaptureFactorImageFromComposeView(
+                        list = list.value,
+                        date = date,
+                        showSign = showSign,
+                        modifier = mutableStateOf(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = custom_blue_7,
+                                    shape = RoundedCornerShape(
+                                        size = 25.dp
+                                    )
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = custom_blue_3,
+                                    shape = RoundedCornerShape(
+                                        size = 25.dp
+                                    )
+                                )
+                                .padding(all = 8.dp)
+                        ) ,
+                        context = context
+                    ).apply {
+                        post {
+                            jetCaptureView?.value = this
+                        }
+                    }
+                }
             )
             AddDeleteRow(
                 onAdd = {
@@ -138,14 +262,14 @@ fun AddEditFactor(
                 },
                 onDate = {
                     if(it){
-                        date = PersianDateFormat("Y/m/d")
+                        date.value = PersianDateFormat("Y/m/d")
                             .format(viewModel.getPersianDate()).toString()
                     }else{
-                        date = ""
+                        date.value = ""
                     }
                 },
                 showSign = {
-                    showSign = it
+                    showSign.value = it
                 }
             )
         }
@@ -158,7 +282,7 @@ fun SaleFactorUi(
     date: String,
     showSign: Boolean
 ) {
-    var totalPriceIndex by remember {
+    val totalPriceIndex by remember {
         mutableStateOf<MutableMap<Int,Double>>(mutableMapOf())
     }
     var totalPrice by remember {
@@ -610,7 +734,7 @@ fun TableBottomSection(
     ){
         Text(
             modifier = Modifier
-                .weight(0.8f),
+                .weight(0.5f),
             textAlign = TextAlign.Center,
             text = " مبلغ به حروف:",
             color = Color.Black,
@@ -621,7 +745,7 @@ fun TableBottomSection(
             _text = totalPriceInString,
             modifier = Modifier
                 .height(height = 38.dp)
-                .weight(1.35f),
+                .weight(1.65f),
             editTextModifier = Modifier
                 .background(
                     color = Color.White,
@@ -812,7 +936,6 @@ fun SignSection(
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
         if (it != null){
             result.value = it
-            Log.d("uri",it.toString())
         }
     }
     Box(
@@ -850,7 +973,7 @@ fun SignSection(
                 .height(height = 90.dp)
                 .border(
                     width = 1.5.dp,
-                    color = Color.Black,
+                    color = if(result.value == null) Color.Black else Color.Transparent,
                     shape = RoundedCornerShape(
                         size = 15.dp
                     )
@@ -872,6 +995,7 @@ fun SignSection(
                     model = ImageRequest.Builder(context)
                         .data(result.value)
                         .crossfade(true)
+                        .allowHardware(false)
                         .build(),
                     placeholder = painterResource(R.drawable.ic_pick_sign),
                     error = painterResource(R.drawable.ic_error),
@@ -880,12 +1004,10 @@ fun SignSection(
                                   Toast.LENGTH_SHORT).show()
                     },
                     contentDescription = "add Sign picture",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Inside,
                     modifier = Modifier.size(70.dp)
                 )
             }
-
-
         }
     }
 }
@@ -913,6 +1035,89 @@ fun AddEditFactorTopBar(
             }
         }
     )
+}
+@Composable
+fun PermissionDialog(
+    onDismiss: ()  -> Unit,
+    onGoToAppSettingsClick: ()  -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape,
+    backgroundColor: Color
+){
+    RightToLeftLayout {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            shape = shape,
+            backgroundColor = backgroundColor,
+            buttons = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ){
+                    Divider(color = MaterialTheme.colors.secondaryVariant)
+                    Text(
+                        text = "تغییر دسترسی به حافظه",
+                        textAlign = TextAlign.Center,
+                        fontFamily = persian_font_semi_bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colors.primaryVariant,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onGoToAppSettingsClick()
+                            }
+                            .padding(5.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "نیاز به دسترسی به حافظه تلفن همراه",
+                    textAlign = TextAlign.Center,
+                    fontFamily = persian_font_semi_bold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colors.primaryVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onGoToAppSettingsClick()
+                        }
+                        .padding(horizontal = 5.dp, vertical = 5.dp)
+                )
+            },
+            text = {
+                Text(
+                    text = "این اپلیکیشن برای ذخیره و انتشار فاکتور نیاز به دسترسی به حافظه داخلی تلفن همراه دارد.",
+                    textAlign = TextAlign.Center,
+                    fontFamily = persian_font_regular,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colors.primaryVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onGoToAppSettingsClick()
+                        }
+                        .padding(horizontal = 5.dp)
+                )
+            },
+            modifier = modifier
+        )
+    }
+}
+fun Activity.shareFactor(result: String){
+    MediaScannerConnection.scanFile(this, arrayOf(result),null){
+            path,uri ->
+        val shareIntent = Intent()
+        shareIntent.action = Intent.ACTION_SEND
+        shareIntent.putExtra(Intent.EXTRA_STREAM,uri)
+        startActivity(Intent.createChooser(shareIntent,"share"))
+    }
+}
+fun Activity.openAppSettings(){
+    Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package",packageName, null)
+    ).also(::startActivity)
 }
 //@Preview(showBackground = true)
 @Composable
