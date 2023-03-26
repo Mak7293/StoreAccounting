@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
+import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,8 @@ import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,8 +29,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -49,8 +54,9 @@ import com.example.storeaccounting.presentation.setting.Setting
 import com.example.storeaccounting.presentation.util.Constants.CREDIT_CARD_ID
 import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
-import com.example.storeaccounting.presentation.view_model.general.GeneralViewModel
+import com.example.storeaccounting.presentation.util.ThemeState
 import com.example.storeaccounting.presentation.view_model.inventory_sale.InventorySaleViewModel
+import com.example.storeaccounting.presentation.view_model.setting.SettingViewModel
 import com.example.storeaccounting.ui.theme.StoreAccountingTheme
 import com.razaghimahdi.compose_persian_date.core.rememberPersianDataPicker
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,27 +65,39 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
+
             StoreAccountingTheme {
+
+                val settingViewModel = viewModel<SettingViewModel>()
+                LaunchedEffect(key1 = true){
+                    settingViewModel.readCurrentThemeForDataStore().collectLatest { theme ->
+                        when(theme){
+                             ThemeState.ThemeNight.theme  ->  {
+                                 Log.d("ThemeNight","aa")
+                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                             }
+                             ThemeState.ThemeDay.theme  ->  {
+                                 Log.d("ThemeDay","aa")
+                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                             }
+                             ThemeState.ThemeDefault.theme  ->  {
+                                 Log.d("ThemeDefault","aa")
+                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                             }
+                        }
+                    }
+                }
 
                 SetStatusBarTheme(
                     window = window,
                     currentFragment = ""
                 )
-
-                //SetStatusBarTheme(window, currentFragment)
-
-                /*val persianDate = PersianDate()
-                val persianDateFormatter = PersianDateFormat("Y/m/d")
-                persianDateFormatter.format(persianDate)
-                Log.d("today","year:${persianDate.shYear}, month:${persianDate.shMonth} && " +
-                        "${persianDate.monthName}, day:${persianDate.shDay} && ${persianDate.dayFinglishName()}")
-                Log.d("today formatted", persianDate.toString())
-                Log.d("today formatted!!", persianDateFormatter.format(persianDate).toString())*/
 
                 val navController = rememberNavController()
                 val parentNavController = rememberNavController()

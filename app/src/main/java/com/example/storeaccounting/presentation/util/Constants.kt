@@ -1,5 +1,7 @@
 package com.example.storeaccounting.presentation.util
 
+import androidx.datastore.preferences.core.stringPreferencesKey
+
 object Constants {
      const val FROM = "from"
      const val UNTIL = "until"
@@ -11,5 +13,8 @@ object Constants {
      const val THIRTY_DAYS_GRAPH = "30_days_graph"
 
      const val CREDIT_CARD_ID = "credit_card_id"
+
+     const val USER_PREFERENCES = "user_preferences"
+     val THEME_KEY = stringPreferencesKey("theme_key")
 
 }

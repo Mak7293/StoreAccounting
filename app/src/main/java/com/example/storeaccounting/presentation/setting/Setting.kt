@@ -18,12 +18,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.edit
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.presentation.component.DefaultRadioButton
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
+import com.example.storeaccounting.presentation.util.Constants.THEME_KEY
 import com.example.storeaccounting.presentation.util.ThemeState
+import com.example.storeaccounting.presentation.view_model.setting.SettingEvent
+import com.example.storeaccounting.presentation.view_model.setting.SettingViewModel
 import com.example.storeaccounting.ui.theme.custom_blue_2
 import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun Setting() {
@@ -62,11 +71,19 @@ fun Setting() {
 
 @Composable
 fun content(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: SettingViewModel = hiltViewModel()
 ) {
     var currentTheme by remember {
-        mutableStateOf(ThemeState.ThemeDefault.theme)
+        mutableStateOf("")
     }
+    LaunchedEffect(key1 = true){
+        viewModel.readCurrentThemeForDataStore().collectLatest {
+            currentTheme = it
+        }
+
+    }
+    val scope = rememberCoroutineScope()
     RightToLeftLayout {
         Column(
             modifier = modifier,
@@ -97,21 +114,21 @@ fun content(
                     text = "روز",
                     selected = currentTheme == ThemeState.ThemeDay.theme,
                     onSelect = {
-                        currentTheme = ThemeState.ThemeDay.theme
+                        viewModel.onEvent(SettingEvent.SaveTheme(ThemeState.ThemeDay.theme))
                     }
                 )
                 DefaultRadioButton(
                     text = "شب",
                     selected = currentTheme == ThemeState.ThemeNight.theme,
                     onSelect = {
-                        currentTheme = ThemeState.ThemeNight.theme
+                        viewModel.onEvent(SettingEvent.SaveTheme(ThemeState.ThemeNight.theme))
                     }
                 )
                 DefaultRadioButton(
                     text = "گوشی",
                     selected = currentTheme == ThemeState.ThemeDefault.theme,
                     onSelect = {
-                        currentTheme = ThemeState.ThemeDefault.theme
+                        viewModel.onEvent(SettingEvent.SaveTheme(ThemeState.ThemeDefault.theme))
                     }
                 )
             }
