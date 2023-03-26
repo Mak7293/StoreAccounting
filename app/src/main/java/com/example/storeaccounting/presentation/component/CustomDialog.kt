@@ -207,7 +207,7 @@ fun CustomContentDialog(
                                 .fillMaxWidth()
                                 .padding(5.dp),
                             text = content,
-                            textAlign = TextAlign.Center,
+                            textAlign = TextAlign.Start,
                             color = MaterialTheme.colors.primaryVariant,
                             fontFamily = persian_font_regular,
                             fontSize = 16.sp

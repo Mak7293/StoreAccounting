@@ -95,6 +95,7 @@ fun AddEditFactor(
     var permissionAlertDialog by remember {
         mutableStateOf(false)
     }
+
     val scope = rememberCoroutineScope()
     var jetCaptureView: MutableState<CaptureFactorImageFromComposeView>? = null
     val readAndWriteStorageResultLauncher = rememberLauncherForActivityResult(
@@ -149,6 +150,7 @@ fun AddEditFactor(
             backgroundColor = MaterialTheme.colors.background
         )
     }
+
     Scaffold(
         topBar = {
             AddEditFactorTopBar(
@@ -163,10 +165,10 @@ fun AddEditFactor(
                     key = WRITE_EXTERNAL_STORAGE
                     readAndWriteStorageResultLauncher.launch(
                         arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.READ_EXTERNAL_STORAGE)
+                                Manifest.permission.READ_EXTERNAL_STORAGE)
                     )
-                },
-                backgroundColor = MaterialTheme.colors.primary
+            },
+                backgroundColor = MaterialTheme.colors.primary,
             ){
                 Icon(
                     modifier = Modifier.size(26.dp),
@@ -186,7 +188,6 @@ fun AddEditFactor(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-
             jetCaptureView = remember { mutableStateOf(
                 CaptureFactorImageFromComposeView(
                     list = list.value,
@@ -194,26 +195,25 @@ fun AddEditFactor(
                     showSign = showSign,
                     modifier = mutableStateOf(
                         Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = custom_blue_7,
-                            shape = RoundedCornerShape(
-                                size = 25.dp
+                            .fillMaxWidth()
+                            .background(
+                                color = custom_blue_7,
+                                shape = RoundedCornerShape(
+                                    size = 25.dp
+                                )
                             )
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = custom_blue_3,
-                            shape = RoundedCornerShape(
-                                size = 25.dp
+                            .border(
+                                width = 2.dp,
+                                color = custom_blue_3,
+                                shape = RoundedCornerShape(
+                                    size = 25.dp
+                                )
                             )
-                        )
-                        .padding(all = 8.dp)
+                            .padding(all = 8.dp)
                     ) ,
                     context = context
                 )
-            )
-            }
+            )}
             AndroidView(modifier = Modifier.wrapContentSize(),
                 factory = {
                     CaptureFactorImageFromComposeView(
@@ -249,10 +249,7 @@ fun AddEditFactor(
             AddDeleteRow(
                 onAdd = {
                     rowNumber++
-
                     list.value.add(rowNumber)
-                    //list.value += SaleFactor(row = rowNumber.toString())
-
                 },
                 onDelete = {
                     if (rowNumber !=0){
@@ -263,7 +260,7 @@ fun AddEditFactor(
                 onDate = {
                     if(it){
                         date.value = PersianDateFormat("Y/m/d")
-                            .format(viewModel.getPersianDate()).toString()
+                                .format(viewModel.getPersianDate()).toString()
                     }else{
                         date.value = ""
                     }
@@ -275,6 +272,8 @@ fun AddEditFactor(
         }
     }
 }
+
+
 @Composable
 fun SaleFactorUi(
     modifier: Modifier = Modifier,
@@ -823,7 +822,7 @@ fun AddDeleteRow(
                     .clickable {
                     dateCheck = !dateCheck
                     onDate(dateCheck)
-                },
+                    },
                 textAlign = TextAlign.Center,
                 text ="به روز کردن تاریخ فاکتور",
                 color = MaterialTheme.colors.primaryVariant,
@@ -1030,7 +1029,7 @@ fun AddEditFactorTopBar(
             ){
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = ""
+                    contentDescription = "back"
                 )
             }
         }
