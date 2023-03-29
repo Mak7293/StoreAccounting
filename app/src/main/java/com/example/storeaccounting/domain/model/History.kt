@@ -8,7 +8,7 @@ data class History(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
     val createdTimeStamp: Long,
-    val remainingInventory: Int,
+    val remainingInventory: Long,
     val transaction: String,
     val title: String,
     val saleNumber: String,

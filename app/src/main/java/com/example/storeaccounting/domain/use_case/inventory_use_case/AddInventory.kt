@@ -19,7 +19,7 @@ class AddInventory(private val repository: Repository, private val resource: Res
             throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
         }else if (checkNumberIsDigit(inventoryEntity.number)){
             throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
-        }else if (inventoryEntity.number.toInt() == 0){
+        }else if (inventoryEntity.number.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
         }
         if(inventoryEntity.buyPrice.isBlank()){
@@ -28,7 +28,7 @@ class AddInventory(private val repository: Repository, private val resource: Res
             throw InvalidTransactionException(resource.getString(R.string.negative_buy_price_exception))
         }else if (checkNumberIsDigit(inventoryEntity.buyPrice)){
             throw InvalidTransactionException(resource.getString(R.string.digit_buy_price_exception))
-        }else if (inventoryEntity.buyPrice.toInt() == 0){
+        }else if (inventoryEntity.buyPrice.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_buy_price_exception))
         }
         if(inventoryEntity.sellPrice.isBlank()){
@@ -37,13 +37,13 @@ class AddInventory(private val repository: Repository, private val resource: Res
             throw InvalidTransactionException(resource.getString(R.string.negative_sell_price_exception))
         }else if (checkNumberIsDigit(inventoryEntity.sellPrice)){
             throw InvalidTransactionException(resource.getString(R.string.digit_sell_price_exception))
-        }else if (inventoryEntity.sellPrice.toInt() == 0){
+        }else if (inventoryEntity.sellPrice.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_sell_price_exception))
         }
         repository.insertInventory(inventoryEntity)
         val history = History(
             createdTimeStamp = inventoryEntity.timeStamp,
-            remainingInventory = inventoryEntity.number.toInt(),
+            remainingInventory = inventoryEntity.number.toLong(),
             transaction = TransactionState.Create.state,
             title = inventoryEntity.title,
             saleNumber = "0",

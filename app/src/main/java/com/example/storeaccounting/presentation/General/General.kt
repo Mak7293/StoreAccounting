@@ -24,7 +24,7 @@ import androidx.navigation.NavController
 import com.example.storeaccounting.domain.model.CreditCard
 import com.example.storeaccounting.presentation.add_edit_credit_card.CreditCard
 import com.example.storeaccounting.presentation.component.CustomContentDialog
-import com.example.storeaccounting.presentation.component.CustomDeleteDialog
+import com.example.storeaccounting.presentation.component.CustomAcceptRefuseDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.util.NavigationRoute
 import com.example.storeaccounting.presentation.view_model.general.GeneralEvent
@@ -242,7 +242,7 @@ fun CreditCardList(
         }
     }
     if (showDeleteDialog.value) {
-        CustomDeleteDialog(
+        CustomAcceptRefuseDialog(
             modifier = Modifier
                 .width(350.dp)
                 .height(200.dp),
@@ -253,6 +253,8 @@ fun CreditCardList(
             content = "حذف کارت اعتباری غیر قابل بازگشت می باشد، آیا مطمئن هستید که می خواهید کارت اعتباری را حذف کنید؟",
             positiveButtonTitle = "حذف کن",
             negativeButtonTitle = "خارج شدن",
+            positiveButtonColor = Color.Green,
+            negativeButtonColor = Color.Red,
             onSuccess = {
                 viewModel.onEvent(GeneralEvent.DeleteCreditCard(creditCard!!))
                 showDeleteDialog.value = false
@@ -296,32 +298,6 @@ fun CreditCardItem(
             cvv2 = item.cvv2
         )
         Spacer(modifier = Modifier.height(4.dp))
-        /*if(item.description.isNotEmpty()){
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    all = 8.dp
-                )
-                .border(
-                    width = 2.dp,
-                    color = MaterialTheme.colors.primaryVariant,
-                    shape = RoundedCornerShape(
-                        size = 14.dp
-                    )
-                )
-            ){
-                Text(
-                    modifier = Modifier.padding(10.dp),
-                    textAlign = TextAlign.Start,
-                    text = item.description,
-                    color = MaterialTheme.colors.primaryVariant,
-                    fontFamily = persian_font_regular,
-                    fontSize = 18.sp,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }*/
         Row(
             modifier = Modifier
                 .fillMaxSize()

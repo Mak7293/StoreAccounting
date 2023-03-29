@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.materialIcon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,12 +27,14 @@ import com.example.storeaccounting.ui.theme.persian_font_regular
 import com.example.storeaccounting.ui.theme.persian_font_semi_bold
 
 @Composable
-fun CustomDeleteDialog(
+fun CustomAcceptRefuseDialog(
     modifier: Modifier = Modifier,
     title: String,
     content: String,
     positiveButtonTitle: String,
     negativeButtonTitle: String,
+    positiveButtonColor: Color,
+    negativeButtonColor: Color,
     onSuccess:() -> Unit,
     onCancel:()  -> Unit,
     setShowDialog: (Boolean) -> Unit
@@ -92,12 +93,12 @@ fun CustomDeleteDialog(
                                 .padding(5.dp),
                             shape = RoundedCornerShape(100),
                             colors = ButtonDefaults.buttonColors(
-                                backgroundColor = Color.Red
+                                backgroundColor = positiveButtonColor
                             ),
                             onClick = {
                                 onSuccess()
                             }
-                        ) {
+                        ){
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,
@@ -113,12 +114,12 @@ fun CustomDeleteDialog(
                                 .padding(5.dp),
                             shape = RoundedCornerShape(100),
                             colors = ButtonDefaults.buttonColors(
-                                backgroundColor = Color(0xFF00CF09)
+                                backgroundColor = negativeButtonColor
                             ),
                             onClick = {
                                 onCancel()
                             }
-                        ) {
+                        ){
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center,

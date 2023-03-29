@@ -20,22 +20,22 @@ class UpdateSaleHistory(private val repository: Repository, private val resource
             throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
         }else if (checkNumberIsDigit(newHistory.saleNumber)){
             throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
-        }else if (newHistory.saleNumber.toInt() == 0){
+        }else if (newHistory.saleNumber.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
         }else if (newHistory.remainingInventory < 0){
             throw InvalidTransactionException(resource.getString(R.string.sale_number_exception))
         }
 
         if(oldHistory.createdTimeStamp == newHistory.createdTimeStamp){
-            val rollbackInventory = inventoryEntity.copy(number = (inventoryEntity.number.toInt() +
-                    oldHistory.saleNumber.toInt()).toString())
+            val rollbackInventory = inventoryEntity.copy(number = (inventoryEntity.number.toLong() +
+                    oldHistory.saleNumber.toLong()).toString())
             repository.updateInventory(rollbackInventory)
             repository.updateHistory(newHistory)
         }else{
             val getOldInventoryByHistory = repository.getHistoriesByInventoryTimeStamp(oldHistory.createdTimeStamp)
             val oldInventory = getOldInventoryByHistory.inventory
-            val rollbackOldInventory = oldInventory.copy(number = (oldInventory.number.toInt() +
-                    oldHistory.saleNumber.toInt()).toString())
+            val rollbackOldInventory = oldInventory.copy(number = (oldInventory.number.toLong() +
+                    oldHistory.saleNumber.toLong()).toString())
             repository.updateInventory(rollbackOldInventory)
 
 

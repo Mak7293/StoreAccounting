@@ -114,4 +114,7 @@ dependencies {
     // Preferences DataStore
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
+    // Room Backup Library
+    implementation 'de.raphaelebner:roomdatabasebackup:1.0.0-beta12'
+
 }

@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
-import com.example.storeaccounting.presentation.component.CustomDeleteDialog
+import com.example.storeaccounting.presentation.component.CustomAcceptRefuseDialog
 import com.example.storeaccounting.presentation.component.CustomHistoryDialog
 import com.example.storeaccounting.presentation.component.EditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
@@ -131,7 +131,7 @@ fun InventoryContent(
     }
 
     if (showDeleteDialog.value) {
-        CustomDeleteDialog(
+        CustomAcceptRefuseDialog(
             modifier = Modifier
                 .width(350.dp)
                 .height(175.dp),
@@ -143,6 +143,8 @@ fun InventoryContent(
                     " آیا مطمئن هستید که میخواهید این کالا را از لیست حذف کنید؟",
             positiveButtonTitle = "حذف کن",
             negativeButtonTitle = "خارج شدن",
+            positiveButtonColor = Color.Red,
+            negativeButtonColor = Color.Green,
             onSuccess = {
                 Log.d("delete",inventory.value.title)
                 inventorySaleViewModel.onEvent(InventorySaleEvent.DeleteInventory(inventory.value))
@@ -183,7 +185,7 @@ fun InventoryHistory(
                 hint =  "نام کالا را جهت جست و جو وارد کنید...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                    .padding( vertical = 10.dp),
                 _text = "",
             ){
                 text = it
@@ -519,7 +521,7 @@ fun InventoryItem(
                     ){
                         Text(
                             modifier = modifier.padding(3.dp),
-                            text ="حاشیه سود کالا: ${item.sellPrice.toInt() - item.buyPrice.toInt()}",
+                            text ="حاشیه سود کالا: ${item.sellPrice.toLong() - item.buyPrice.toLong()}",
                             fontFamily = persian_font_semi_bold,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center,

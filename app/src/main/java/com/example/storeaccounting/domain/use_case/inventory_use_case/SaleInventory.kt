@@ -19,9 +19,9 @@ class SaleInventory(private val repository: Repository, private val resource: Re
             throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
         }else if (checkNumberIsDigit(inventoryEntity.number)){
             throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
-        }else if (history.saleNumber.toInt() == 0){
+        }else if (history.saleNumber.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
-        }else if (inventoryEntity.number.toInt() < 0){
+        }else if (inventoryEntity.number.toLong() < 0L){
             throw InvalidTransactionException(resource.getString(R.string.sale_number_exception))
         }
         repository.updateInventory(inventoryEntity)

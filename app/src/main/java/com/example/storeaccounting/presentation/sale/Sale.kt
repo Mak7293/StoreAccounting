@@ -31,9 +31,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.util.TransactionState
-import com.example.storeaccounting.presentation.component.CustomDeleteDialog
+import com.example.storeaccounting.presentation.component.CustomAcceptRefuseDialog
 import com.example.storeaccounting.presentation.component.EditText
-import com.example.storeaccounting.presentation.component.FactorEditText
 import com.example.storeaccounting.presentation.component.RightToLeftLayout
 import com.example.storeaccounting.presentation.component.date_picker.PersianDataPicker
 import com.example.storeaccounting.presentation.util.Constants.DAY
@@ -62,7 +61,6 @@ import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.line.lineSpec
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.*
-import com.patrykandpatrick.vico.core.marker.Marker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -229,7 +227,7 @@ fun Sale(
                                 strokeColor = MaterialTheme.colors.onSurface,
                             ),
                             valueFormatter = AxisValueFormatter { value, chartValues ->
-                                val a = if (value == 0.0f) "today" else "-"+value.toInt().toString()
+                                val a = if (value == 0.0f) "today" else "-"+value.toLong().toString()
                                 a
                             }
                         )
@@ -412,7 +410,7 @@ fun SaleContent(
         }
     }
     if (showDeleteDialog.value) {
-        CustomDeleteDialog(
+        CustomAcceptRefuseDialog(
             modifier = Modifier
                 .width(350.dp)
                 .height(250.dp),
@@ -425,6 +423,8 @@ fun SaleContent(
                     " آیا مطمئن هستید که میخواهید این تراکنش را حذف کنید؟",
             positiveButtonTitle = "حذف کن",
             negativeButtonTitle = "خارج شدن",
+            positiveButtonColor = Color.Red,
+            negativeButtonColor = Color.Green,
             onSuccess = {
                 inventorySaleViewModel.onEvent(InventorySaleEvent.DeleteSaleHistory(deleteHistory!!))
                 showDeleteDialog.value = false
@@ -595,16 +595,15 @@ fun SaleBottomSheetContent(
                                 val newInventoryEntity = inventoryEntity.value!!.copy(
                                     date = currentDate,
                                     timeStamp = System.currentTimeMillis(),
-                                    number = (inventoryEntity.value!!.number.toInt() - number.toInt()).toString(),
                                 )
                                 val newHistory = History(
                                     id=oldHistory?.id ,
                                     createdTimeStamp = newInventoryEntity.createdTimeStamp,
                                     remainingInventory =
                                     if(newInventoryEntity.createdTimeStamp == oldHistory?.createdTimeStamp){
-                                        newInventoryEntity.number.toInt() + oldHistory.saleNumber.toInt()
+                                        newInventoryEntity.number.toLong() + oldHistory.saleNumber.toLong()
                                     }else{
-                                        newInventoryEntity.number.toInt()
+                                        newInventoryEntity.number.toLong()
                                     },
                                     transaction = TransactionState.Sale.state,
                                     title = newInventoryEntity.title,
@@ -973,13 +972,13 @@ fun SaleItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="حاشیه سود کالا: ${item.sellPrice.toInt() - item.buyPrice.toInt()}",
+                        text ="حاشیه سود کالا: ${item.sellPrice.toLong() - item.buyPrice.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
                     )
                     Text(
-                        text ="سود حاصل از فروش کالا: ${(item.sellPrice.toInt() - item.buyPrice.toInt()) * item.saleNumber.toInt()}",
+                        text ="سود حاصل از فروش کالا: ${(item.sellPrice.toLong() - item.buyPrice.toLong()) * item.saleNumber.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black

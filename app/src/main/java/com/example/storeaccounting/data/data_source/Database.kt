@@ -12,7 +12,7 @@ import com.example.storeaccounting.domain.model.InventoryEntity
     version = 1,
     exportSchema = false
 )
-abstract class TransactionDatabase: RoomDatabase() {
+abstract class Database: RoomDatabase() {
     abstract val transactionDao: InventoryDao
     abstract val creditCardDao: CreditCardDao
 

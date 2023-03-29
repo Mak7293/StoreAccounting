@@ -8,7 +8,7 @@ val Purple700 = Color(0xFF3700B3)
 val Teal200 = Color(0xFF03DAC5)
 
 
-val test = Color(0xFFFFE500)
+val test = Color(0xFF00CE08)
 
 val creditCardLight = Color(0xFFFFE925)
 val creditCardMedium = Color(0xFFFFAF3A)

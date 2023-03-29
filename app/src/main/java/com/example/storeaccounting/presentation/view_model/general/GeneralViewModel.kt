@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfDocument.PageInfo
 import android.media.MediaScannerConnection
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -102,6 +103,7 @@ class GeneralViewModel@Inject constructor(
                             fo.close()
                             result = file.absolutePath
                             if(result.isNotEmpty()){
+                                Log.d("path",result)
                                 _eventFlow.emit(
                                     GeneralUiEvent.ShowToast(message = " فاکتور با موفقیت ذخیره شد: $result")
                                 )
@@ -112,9 +114,7 @@ class GeneralViewModel@Inject constructor(
                                 _eventFlow.emit(
                                     GeneralUiEvent.ShowToast(message = "خطا در ذخیره فاکتور، لطفا دوباره تلاش کنید.")
                                 )
-
                             }
-
                         }catch(e: Exception){
                             result = ""
                             e.printStackTrace()
@@ -188,7 +188,6 @@ class GeneralViewModel@Inject constructor(
                 _eventFlow.emit(
                     GeneralUiEvent.ShowToast(message = "خطا در به روز رسانی کارت ، لطفا دوباره تلاش کنید.")
                 )
-
             }
         }
     }

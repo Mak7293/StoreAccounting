@@ -4,12 +4,14 @@ import android.Manifest
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -53,6 +56,7 @@ import com.example.storeaccounting.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import saman.zamani.persiandate.PersianDateFormat
+import java.io.File
 
 
 @Composable
@@ -60,10 +64,8 @@ fun AddEditFactor(
     parentNavController: NavController,
     context: Context = LocalContext.current,
     viewModel: GeneralViewModel = hiltViewModel()
-) {
-
+){
     (context as Activity).requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-
     LaunchedEffect(key1 = true){
         viewModel.eventFlow.collectLatest { event  ->
             when(event){
@@ -71,7 +73,8 @@ fun AddEditFactor(
                     Toast.makeText(context,event.message, Toast.LENGTH_SHORT).show()
                 }
                 is GeneralViewModel.GeneralUiEvent.ShareFactor -> {
-                    (context as Activity).shareFactor(event.path)
+                    val file = File(event.path)
+                    context.openDirectory(file)
                 }
                 else  ->  {}
             }
@@ -1103,20 +1106,28 @@ fun PermissionDialog(
         )
     }
 }
-fun Activity.shareFactor(result: String){
-    MediaScannerConnection.scanFile(this, arrayOf(result),null){
-            path,uri ->
-        val shareIntent = Intent()
-        shareIntent.action = Intent.ACTION_SEND
-        shareIntent.putExtra(Intent.EXTRA_STREAM,uri)
-        startActivity(Intent.createChooser(shareIntent,"share"))
-    }
-}
 fun Activity.openAppSettings(){
     Intent(
         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
         Uri.fromParts("package",packageName, null)
     ).also(::startActivity)
+}
+fun Context.openDirectory(file: File) {
+    try {
+        val uri = FileProvider.getUriForFile(
+            this, this.applicationContext.packageName
+                    + ".fileprovider", file
+        )
+
+        Log.d("filePath",file.toString())
+        Log.d("uriPath",uri.toString())
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        intent.setDataAndType(uri ,"*/*" )
+        startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(this, "اپلیکیشن جهت باز کردن فایل pdf در دستگاه پیدا نشد.", Toast.LENGTH_SHORT).show()
+    }
 }
 //@Preview(showBackground = true)
 @Composable
@@ -1129,3 +1140,4 @@ fun Preview() {
         showSign = true
     )
 }
+

@@ -20,7 +20,7 @@ class UpdateInventory(private val repository: Repository, private val resource: 
             throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
         }else if (checkNumberIsDigit(inventoryEntity.number)){
             throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
-        }else if (inventoryEntity.number.toInt() == 0){
+        }else if (inventoryEntity.number.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
         }
         if(inventoryEntity.buyPrice.isBlank()){
@@ -29,7 +29,7 @@ class UpdateInventory(private val repository: Repository, private val resource: 
             throw InvalidTransactionException(resource.getString(R.string.negative_buy_price_exception))
         }else if (checkNumberIsDigit(inventoryEntity.buyPrice)){
             throw InvalidTransactionException(resource.getString(R.string.digit_buy_price_exception))
-        }else if (inventoryEntity.buyPrice.toInt() == 0){
+        }else if (inventoryEntity.buyPrice.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_buy_price_exception))
         }
         if(inventoryEntity.sellPrice.isBlank()){
@@ -38,7 +38,7 @@ class UpdateInventory(private val repository: Repository, private val resource: 
             throw InvalidTransactionException(resource.getString(R.string.negative_sell_price_exception))
         }else if (checkNumberIsDigit(inventoryEntity.sellPrice)){
             throw InvalidTransactionException(resource.getString(R.string.digit_sell_price_exception))
-        }else if (inventoryEntity.sellPrice.toInt() == 0){
+        }else if (inventoryEntity.sellPrice.toLong() == 0L){
             throw InvalidTransactionException(resource.getString(R.string.zero_sell_price_exception))
         }
         val history = History(
@@ -50,7 +50,7 @@ class UpdateInventory(private val repository: Repository, private val resource: 
             sellPrice = inventoryEntity.sellPrice,
             timeStamp = inventoryEntity.timeStamp,
             date = inventoryEntity.date,
-            remainingInventory = inventoryEntity.number.toInt()
+            remainingInventory = inventoryEntity.number.toLong()
         )
         repository.insertHistory(history)
         repository.updateInventory(inventoryEntity)

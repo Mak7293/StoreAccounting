@@ -43,7 +43,12 @@ sealed class NavigationRoute(
         title = null
     )
     object AddEditFactor: NavigationRoute(
-        route = "add_credit_factor",
+        route = "add_edit_factor",
+        icon = null,
+        title = null
+    )
+    object SplashScreen: NavigationRoute(
+        route = "splash_screen",
         icon = null,
         title = null
     )

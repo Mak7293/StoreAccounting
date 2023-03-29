@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
-import com.example.storeaccounting.data.data_source.TransactionDatabase
+import com.example.storeaccounting.data.data_source.Database
 import com.example.storeaccounting.data.repository.RepositoryImp
 import com.example.storeaccounting.domain.repository.Repository
 import com.example.storeaccounting.domain.use_case.*
@@ -30,17 +30,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(app: Application): TransactionDatabase{
+    fun provideDatabase(app: Application): Database{
         return Room.databaseBuilder(
             app,
-            TransactionDatabase::class.java,
-            TransactionDatabase.DATABASE_NAME
+            Database::class.java,
+            Database.DATABASE_NAME
         ).build()
     }
 
     @Provides
     @Singleton
-    fun provideRepository(db: TransactionDatabase): Repository {
+    fun provideRepository(db: Database): Repository {
         return RepositoryImp(db.transactionDao,db.creditCardDao)
     }
 

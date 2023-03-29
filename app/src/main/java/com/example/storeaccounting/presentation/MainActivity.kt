@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
-import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -12,7 +11,7 @@ import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -29,7 +28,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,12 +43,14 @@ import com.example.storeaccounting.presentation.General.General
 import com.example.storeaccounting.presentation.add_edit_credit_card.AddEditCreditCardTopBar
 import com.example.storeaccounting.presentation.add_edit_factor.AddEditFactor
 import com.example.storeaccounting.presentation.component.BottomNavigation
+import com.example.storeaccounting.presentation.component.CustomAcceptRefuseDialog
 import com.example.storeaccounting.presentation.inventory.AddEditInventoryBottomSheetContent
 import com.example.storeaccounting.presentation.inventory.Inventory
 import com.example.storeaccounting.presentation.sale.ResultBottomSheetContent
 import com.example.storeaccounting.presentation.sale.Sale
 import com.example.storeaccounting.presentation.sale.SaleBottomSheetContent
 import com.example.storeaccounting.presentation.setting.Setting
+import com.example.storeaccounting.presentation.splash_screen.SplashScreen
 import com.example.storeaccounting.presentation.util.Constants.CREDIT_CARD_ID
 import com.example.storeaccounting.presentation.util.FabRoute
 import com.example.storeaccounting.presentation.util.NavigationRoute
@@ -69,11 +69,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        applyEnglishLanguage()
         setContent {
-
             StoreAccountingTheme {
-
                 val settingViewModel = viewModel<SettingViewModel>()
                 LaunchedEffect(key1 = true){
                     settingViewModel.readCurrentThemeForDataStore().collectLatest { theme ->
@@ -93,26 +91,28 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-
                 SetStatusBarTheme(
                     window = window,
                     currentFragment = ""
                 )
-
                 val navController = rememberNavController()
                 val parentNavController = rememberNavController()
                 NavHost(
                     navController = parentNavController,
-                    startDestination = NavigationRoute.Main.route,
-                    modifier = Modifier
-                        .background(MaterialTheme.colors.background)
+                    startDestination = NavigationRoute.SplashScreen.route,
+                    modifier = Modifier.background(MaterialTheme.colors.background)
                 ){
+                    composable(route = NavigationRoute.SplashScreen.route){
+                        SplashScreen(parentNavController = parentNavController)
+
+                    }
                     composable(route = NavigationRoute.Main.route){
                         Main(
                             navController = navController,
                             parentNavController = parentNavController,
                             window = window
                         )
+
                     }
                     composable(
                         route = "${NavigationRoute.AddEditCreditCard.route}/{$CREDIT_CARD_ID}",
@@ -131,22 +131,34 @@ class MainActivity : AppCompatActivity() {
                     }
                     composable(
                         route = NavigationRoute.AddEditFactor.route,
-                        /*arguments = listOf(
-                            navArgument(CREDIT_CARD_ID){
-                                type = NavType.IntType
-                                this.defaultValue = -1
-                            }
-                        )*/
                     ){
                         SetStatusBarTheme(window,it.destination.route!!.split("/").first())
                         AddEditFactor(
                             parentNavController = parentNavController,
-                            //editCardId = it.arguments?.getInt(CREDIT_CARD_ID)
                         )
                     }
                 }
 
             }
+        }
+    }
+    private fun applyEnglishLanguage(locale: Locale = Locale.ENGLISH){
+        val config = this.resources.configuration
+        val sysLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.locales.get(0)
+        } else {
+            //Legacy
+            config.locale
+        }
+        if (sysLocale.language != locale.language) {
+            Locale.setDefault(locale)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                config.setLocale(locale)
+            } else {
+                //Legacy
+                config.locale = locale
+            }
+            resources.updateConfiguration(config, resources.displayMetrics)
         }
     }
 }
@@ -178,7 +190,6 @@ fun Main(
             durationMillis = 1000
         )
     )
-
     val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = sheetState
     )
@@ -188,6 +199,36 @@ fun Main(
             sheetState.collapse()
         }
     }
+    var showExitDialog by remember {
+        mutableStateOf(false)
+    }
+    BackHandler(enabled = true) {
+       showExitDialog = true
+    }
+    if(showExitDialog){
+        CustomAcceptRefuseDialog(
+            title = "خارج شدن از اپبیکیشن",
+            content = "آیا مطمئن هستید که میخواهید از اپلیکیشن خارج شوید؟",
+            positiveButtonTitle = "خیر",
+            negativeButtonTitle = "بله",
+            positiveButtonColor = Color.Red,
+            negativeButtonColor = Color.Green,
+            onSuccess = {
+                showExitDialog = false
+            },
+            onCancel = {
+                context.finishAffinity()
+            },
+            setShowDialog = {
+                showExitDialog = it
+            },
+            modifier = Modifier
+                .width(350.dp)
+                .height(175.dp)
+                .padding(all=5.dp),
+        )
+    }
+
     LaunchedEffect(key1 = true){
         inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
