@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.navigation.NavController
 import com.example.storeaccounting.presentation.util.NavigationRoute
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -33,6 +34,7 @@ fun BottomNavigation(
             BottomNavigationItem(
                 label = {
                     Text(
+                        modifier = Modifier,
                         text = it.title!!,
                         fontSize = if(currentRoute == it.route) 14.sp else 12.sp,
                         fontFamily = persian_font_medium

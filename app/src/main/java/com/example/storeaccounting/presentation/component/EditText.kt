@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +28,7 @@ fun EditText(
     modifier: Modifier = Modifier,
     hint: String = "",
     _text: String,
+    testTag: String = "",
     onText:(String) -> Unit,
 ){
     var text by remember {
@@ -79,7 +81,8 @@ fun EditText(
                         if (text.isEmpty()) {
                             isHintDisplayed = !it.isFocused
                         }
-                    },
+                    }
+                    .testTag(testTag),
             )
             if(isHintDisplayed){
                 Text(

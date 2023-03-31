@@ -43,7 +43,6 @@ import com.example.storeaccounting.ui.theme.persian_font_regular
 import kotlinx.coroutines.flow.collectLatest
 
 
-@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun Setting() {
     Column(
@@ -84,7 +83,6 @@ fun Setting() {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun content(
     context: Context = LocalContext.current,
@@ -120,6 +118,7 @@ fun content(
     }
     val activityLauncher= rememberLauncherForActivityResult(
             ActivityResultContracts.StartActivityForResult()){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
             if(!Environment.isExternalStorageManager()){
                 Toast.makeText(context," گرفتن بک آپ نیاز به دسترسی برای مدیریت فایل ها دارد.",
                     Toast.LENGTH_SHORT).show()
@@ -128,7 +127,9 @@ fun content(
             }else if(launcherKey == READ_EXTERNAL_STORAGE){
                 restoreDialog = true
             }
+        }
     }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ){ permissions ->

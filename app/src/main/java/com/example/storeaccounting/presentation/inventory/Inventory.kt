@@ -20,11 +20,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.storeaccounting.core.FakeEntries
+import com.example.storeaccounting.core.TestTag
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.presentation.component.CustomAcceptRefuseDialog
@@ -45,7 +48,6 @@ fun Inventory(
     context: Context = LocalContext.current,
     onClick: (FabRoute, InventoryEntity?) ->  Unit
 ) {
-    Log.d("InventoryRecomposition0","@@@@@@@@")
     val scaffoldState = rememberScaffoldState()
     Scaffold(
         floatingActionButton = {
@@ -57,7 +59,7 @@ fun Inventory(
             ){
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
+                    contentDescription = "add_inventory",
                     tint = MaterialTheme.colors.onSurface
                 )
             }
@@ -81,7 +83,6 @@ fun InventoryContent(
     inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
     onData:(InventoryEntity) -> Unit
 ){
-
     val showDeleteDialog =  remember {
         mutableStateOf(false)
     }
@@ -160,7 +161,7 @@ fun InventoryContent(
 fun InventoryHistory(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues,
-    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel()
+    viewModel: InventorySaleViewModel = hiltViewModel()
 ){
     var text by remember {
         mutableStateOf("")
@@ -174,7 +175,8 @@ fun InventoryHistory(
         ){
             Text(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                ,
                 textAlign = TextAlign.Start,
                 text = "لیست کالا های فروشگاه:",
                 color = MaterialTheme.colors.primaryVariant,
@@ -189,7 +191,7 @@ fun InventoryHistory(
                 _text = "",
             ){
                 text = it
-                inventorySaleViewModel.onEvent(InventorySaleEvent.FilterInventory(it))
+                viewModel.onEvent(InventorySaleEvent.FilterInventory(it))
             }
             Divider(modifier = Modifier
                 .fillMaxWidth()
@@ -295,6 +297,10 @@ fun AddEditInventoryBottomSheetContent(
             buyPrice = inventory?.buyPrice ?: ""
         }
     }
+    Log.d("iTitle",title)
+    Log.d("iNumber",number)
+    Log.d("iBuyprice",buyPrice)
+    Log.d("iSellprice",sellPrice)
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -319,7 +325,8 @@ fun AddEditInventoryBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp),
-                _text = inventory?.title ?: ""
+                _text = inventory?.title ?: title,
+                testTag = TestTag.INVENTORY_NAME
             ){
                 title = it
             }
@@ -328,7 +335,8 @@ fun AddEditInventoryBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp),
-                _text = inventory?.number ?: ""
+                _text = inventory?.number ?: number,
+                testTag = TestTag.INVENTORY_NUMBER
             ){
                 number = it
             }
@@ -337,7 +345,8 @@ fun AddEditInventoryBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp),
-                _text = inventory?.buyPrice ?: ""
+                _text = inventory?.buyPrice ?: buyPrice,
+                testTag = TestTag.INVENTORY_BUY_PRICE
             ){
                 buyPrice = it
             }
@@ -346,7 +355,8 @@ fun AddEditInventoryBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 10.dp),
-                _text = inventory?.sellPrice ?: ""
+                _text = inventory?.sellPrice ?: sellPrice,
+                testTag = TestTag.INVENTORY_SELL_PRICE
             ){
                 sellPrice = it
             }
@@ -380,9 +390,14 @@ fun AddEditInventoryBottomSheetContent(
 
             ){
                 Button(
-                    modifier = Modifier.width(175.dp),
+                    modifier = Modifier
+                        .width(175.dp),
                     onClick = {
                         onDismiss()
+                        title = ""
+                        number = ""
+                        buyPrice = ""
+                        sellPrice = ""
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF013A63))
@@ -398,7 +413,9 @@ fun AddEditInventoryBottomSheetContent(
                     )
                 }
                 Button(
-                    modifier = Modifier.width(175.dp),
+                    modifier = Modifier
+                        .width(175.dp)
+                        .testTag(TestTag.INVENTORY_ADD),
                     onClick = {
                         val inventoryEntity = InventoryEntity(
                             id = inventory?.id,
@@ -415,6 +432,10 @@ fun AddEditInventoryBottomSheetContent(
                         }else{
                             inventorySaleViewModel.onEvent(InventorySaleEvent.UpdateInventory(inventoryEntity))
                         }
+                        title = ""
+                        number = ""
+                        buyPrice = ""
+                        sellPrice = ""
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF008506))

@@ -80,8 +80,10 @@ class SettingViewModel @Inject constructor(
         val sDir = File("${Environment.getExternalStorageDirectory()}")
         val fileName = "StoreStorageBackUp"
         val sfPath = sDir.path + File.separator + fileName
-        if (!sDir.exists()) {
-            sDir.mkdirs()
+        if (!File(sfPath).exists()) {
+            Toast.makeText(this,"فایل بک آپ در مسیر مورد نظر پیدا نشد،" +
+                    " لطفا ابتدا اقدام به گرفتن بک آپ نمایید.",Toast.LENGTH_LONG).show()
+            return
         }
         val dbExternal = "$sfPath/${Database.DATABASE_NAME}"
         val walExternal = "$sfPath/${Database.DATABASE_NAME}-wal"

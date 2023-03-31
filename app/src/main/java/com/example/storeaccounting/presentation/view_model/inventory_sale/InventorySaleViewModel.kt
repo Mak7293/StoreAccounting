@@ -124,6 +124,7 @@ class InventorySaleViewModel@Inject constructor(
             }
         }
         result.remove(0)
+        Log.d("result",result.toString())
         return result
     }
     private fun filteredInventory(query: String){

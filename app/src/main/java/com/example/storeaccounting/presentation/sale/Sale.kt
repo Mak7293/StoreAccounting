@@ -23,11 +23,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.storeaccounting.core.TestTag
+import com.example.storeaccounting.core.TestTag.saleTitle
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.util.TransactionState
@@ -63,6 +69,7 @@ import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.math.nextUp
 
 
 @Composable
@@ -148,7 +155,7 @@ fun Sale(
             ){
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
+                    contentDescription = "add_sale",
                     tint = MaterialTheme.colors.onSurface
                 )
             }
@@ -186,6 +193,7 @@ fun Sale(
                     .padding(end = 10.dp)
                 ){
                     val a = graphList.value.map { it }.toTypedArray()
+                    Log.d("resultGraph",graphList.toString())
                     val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(*a))
                     Chart(
                         chart =
@@ -225,11 +233,7 @@ fun Sale(
                             guideline = axisGuidelineComponent(
                                 strokeWidth = 1.dp,
                                 strokeColor = MaterialTheme.colors.onSurface,
-                            ),
-                            valueFormatter = AxisValueFormatter { value, chartValues ->
-                                val a = if (value == 0.0f) "today" else "-"+value.toLong().toString()
-                                a
-                            }
+                            )
                         )
                     )
                 }
@@ -465,6 +469,7 @@ fun SaleBottomSheetContent(
                 number = oldHistory.saleNumber
             }else{
                 inventoryEntity.value = null
+                number = ""
             }
         }
         Column (
@@ -485,7 +490,8 @@ fun SaleBottomSheetContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
+                    .height(150.dp)
+                    .testTag(TestTag.SALE_ITEM_COLUMN),
                 contentPadding = PaddingValues(10.dp),
             ){
                 items(
@@ -493,11 +499,17 @@ fun SaleBottomSheetContent(
                     key = { it }
                 ){
                     SaleBottomSheetItem(
-                        modifier = Modifier.animateItemPlacement(
-                            animationSpec = tween(
-                                durationMillis = 500
+                        modifier = Modifier
+                            .animateItemPlacement(
+                                animationSpec = tween(
+                                    durationMillis = 500
+                                )
                             )
-                        ),
+                            .semantics {
+                                saleTitle = saleList[it].title
+                            }
+                            .testTag(saleList[it].title)
+                        ,
                         item = saleList[it],
                         isSelected = inventoryEntity.value?.createdTimeStamp == saleList[it].createdTimeStamp
                     ){ InventoryEntity ->
@@ -538,7 +550,8 @@ fun SaleBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp, vertical = 10.dp),
-                _text = oldHistory?.saleNumber ?: ""
+                _text = number,
+                testTag = TestTag.SALE_NAME
             ){
                 number = it
             }
@@ -588,13 +601,16 @@ fun SaleBottomSheetContent(
                     )
                 }
                 Button(
-                    modifier = Modifier.width(175.dp),
+                    modifier = Modifier
+                        .width(175.dp)
+                        .testTag(TestTag.SALE_ADD),
                     onClick = {
                         if(inventoryEntity.value != null){
                             try{
                                 val newInventoryEntity = inventoryEntity.value!!.copy(
                                     date = currentDate,
                                     timeStamp = System.currentTimeMillis(),
+                                    number = (inventoryEntity.value!!.number.toLong() - number.toLong()).toString()
                                 )
                                 val newHistory = History(
                                     id=oldHistory?.id ,
@@ -626,6 +642,8 @@ fun SaleBottomSheetContent(
                                         newHistory = newHistory,
                                         oldHistory = oldHistory))
                                 }
+                                inventoryEntity.value = null
+                                number = ""
                             }catch (e: java.lang.NumberFormatException){
                                 Toast.makeText(context,"تعداد کالا تنها می تواند عدد باشد.",Toast.LENGTH_SHORT).show()
                             }
@@ -714,7 +732,7 @@ fun SaleBottomSheetItem(
                         .size(size = 35.dp)
                         .padding(end = 5.dp),
                     imageVector = Icons.Default.CheckBoxOutlineBlank ,
-                    contentDescription = "Add",
+                    contentDescription = item.title,
                     tint = Color.Black
                 )
                 if (isSelected){
@@ -1076,15 +1094,7 @@ fun TestPreview(){
         buyPrice = "5454656",
         saleNumber = "541"
     )
-    /*SaleBottomSheetItem(
-        modifier = Modifier,
-        item = inventoryEntity,
-        contentPadding = 5.dp,
-        verticalPadding = 5.dp,
-        isSelected = true
-    ){
 
-    }*/
     SaleItem(modifier = Modifier.fillMaxWidth(),item = history, onDelete = {}){
 
     }

@@ -13,6 +13,7 @@ import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.*
@@ -60,8 +61,10 @@ import com.example.storeaccounting.presentation.view_model.setting.SettingViewMo
 import com.example.storeaccounting.ui.theme.StoreAccountingTheme
 import com.razaghimahdi.compose_persian_date.core.rememberPersianDataPicker
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 @AndroidEntryPoint
@@ -163,6 +166,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+
 @SuppressLint("SourceLockedOrientationActivity")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -233,8 +237,9 @@ fun Main(
         inventorySaleViewModel.eventFlow.collectLatest { event  ->
             when(event){
                 is  InventorySaleViewModel.InventorySaleUiEvent.ShowToast   ->   {
-                    Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
-
+                    withContext(Dispatchers.Main){
+                        Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
+                    }
                 }
                 is  InventorySaleViewModel.InventorySaleUiEvent.SaveInventory  ->  {
                     scope.launch {
@@ -246,7 +251,9 @@ fun Main(
                     }
                 }
                 is InventorySaleViewModel.InventorySaleUiEvent.DeleteInventory   -> {
-                    Toast.makeText(context,"کالا با موفقیت حذف شد.",Toast.LENGTH_SHORT).show()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "کالا با موفقیت حذف شد.", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 is InventorySaleViewModel.InventorySaleUiEvent.UpdateInventory   -> {
                     scope.launch {
@@ -258,7 +265,10 @@ fun Main(
                     }
                 }
                 is InventorySaleViewModel.InventorySaleUiEvent.SaleInventory   ->   {
-                    Toast.makeText(context,"فروش کالا با موفقیت ثبت شد.",Toast.LENGTH_SHORT).show()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "فروش کالا با موفقیت ثبت شد.", Toast.LENGTH_SHORT)
+                            .show()
+                    }
                     scope.launch {
                         if(sheetState.isCollapsed) {
                             sheetState.expand()
@@ -268,7 +278,11 @@ fun Main(
                     }
                 }
                 is InventorySaleViewModel.InventorySaleUiEvent.UpdateSaleHistory  ->  {
-                    Toast.makeText(context,"تراکنش فروش با موقیت به روز رسانی شد.",Toast.LENGTH_SHORT).show()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            context, "تراکنش فروش با موقیت به روز رسانی شد.", Toast.LENGTH_SHORT
+                        ).show()
+                    }
                     scope.launch {
                         if(sheetState.isCollapsed) {
                             sheetState.expand()
@@ -278,7 +292,10 @@ fun Main(
                     }
                 }
                 is InventorySaleViewModel.InventorySaleUiEvent.DeleteSaleHistory   ->   {
-                    Toast.makeText(context,"تراکنش فروش با موقیت به حذف شد.",Toast.LENGTH_SHORT).show()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "تراکنش فروش با موقیت به حذف شد.", Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
                 else -> {}
             }
