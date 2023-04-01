@@ -16,7 +16,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.storeaccounting.core.TestTag
+import com.example.storeaccounting.core.TestTag.INVENTORY_ITEM_LAZY_COLUMN
+import com.example.storeaccounting.core.TestTag.InventoryLazyKey
+import com.example.storeaccounting.core.TestTag.SALE_ITEM_LAZY_COLUMN
 import com.example.storeaccounting.core.TestTag.SaleKey
+import com.example.storeaccounting.core.TestTag.SaleLazyKey
 import com.example.storeaccounting.di.AppModule
 import com.example.storeaccounting.presentation.add_edit_credit_card.AddEditCreditCardTopBar
 import com.example.storeaccounting.presentation.add_edit_factor.AddEditFactor
@@ -125,10 +129,9 @@ class SaleEndToEndTest {
             }
         }
     }
-
     @Test
-    fun testGraph(){
-
+    fun testAddInventoryAddSale(){
+        //AddInventory
         composeRule.waitUntil(
             4000,
             condition ={
@@ -136,7 +139,7 @@ class SaleEndToEndTest {
             }
         )
         composeRule.onNodeWithContentDescription(NavigationRoute.Inventory.title!!).performClick()
-        ('a'..'d').forEachIndexed { index, c ->
+        ('a'..'j').forEachIndexed { index, c ->
 
             composeRule
                 .onNodeWithContentDescription("add_inventory")
@@ -156,32 +159,53 @@ class SaleEndToEndTest {
                 .onNodeWithTag(TestTag.INVENTORY_SELL_PRICE)
                 .performTextInput((c.code * (20..30)
                     .random()).toString())
-
             composeRule
                 .onNodeWithTag(TestTag.INVENTORY_ADD)
                 .performClick()
-        }
-        composeRule.onNodeWithContentDescription(NavigationRoute.Sale.title!!).performClick()
-        composeRule.onNodeWithContentDescription("add_sale").performClick()
-        ('a'..'d').forEachIndexed { index, c ->
 
-            composeRule.onNodeWithTag(TestTag.SALE_ITEM_COLUMN).performScrollToNode(
+            //assert added inventory is displayed
+            composeRule
+                .onNodeWithTag(INVENTORY_ITEM_LAZY_COLUMN)
+                .performScrollToNode(
+                matcher = SemanticsMatcher.expectValue(key = InventoryLazyKey, expectedValue = c.toString())
+            )
+            composeRule
+                .onNodeWithTag(c.toString())
+                .assertIsDisplayed()
+        }
+        //add Sale
+        composeRule.onNodeWithContentDescription(NavigationRoute.Sale.title!!).performClick()
+        ('a'..'j').forEachIndexed { index, c ->
+
+            composeRule
+                .onNodeWithContentDescription("add_sale")
+                .performClick()
+            composeRule
+                .onNodeWithTag(TestTag.SALE_ITEM_BOTTOM_SHEET_LAZY_COLUMN)
+                .performScrollToNode(
                 matcher = SemanticsMatcher.expectValue(key = SaleKey, expectedValue = c.toString())
             )
-
             composeRule
-                .onNodeWithTag(c.toString()).performClick()
+                .onNodeWithTag(c.toString())
+                .performClick()
             composeRule
-                .onNodeWithTag(TestTag.SALE_NAME)
+                .onNodeWithTag(TestTag.SALE_NUMBER)
                 .performTextInput((c.code*(1..4)
                     .random()).toString())
             composeRule
                 .onNodeWithTag(TestTag.SALE_ADD)
                 .performClick()
+
+            // assert sale inventory is displayed
+            composeRule
+                .onNodeWithTag(SALE_ITEM_LAZY_COLUMN)
+                .performScrollToNode(
+                    matcher = SemanticsMatcher.expectValue(key = SaleLazyKey, expectedValue = c.toString())
+                )
+            composeRule
+                .onNodeWithTag(c.toString()+"@")
+                .assertIsDisplayed()
         }
-
-
-
     }
 
 

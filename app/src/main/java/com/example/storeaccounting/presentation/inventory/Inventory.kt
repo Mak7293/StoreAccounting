@@ -21,13 +21,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.storeaccounting.core.FakeEntries
 import com.example.storeaccounting.core.TestTag
+import com.example.storeaccounting.core.TestTag.INVENTORY_ITEM_LAZY_COLUMN
+import com.example.storeaccounting.core.TestTag.inventoryLazyTitle
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.presentation.component.CustomAcceptRefuseDialog
@@ -187,7 +189,7 @@ fun InventoryHistory(
                 hint =  "نام کالا را جهت جست و جو وارد کنید...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding( vertical = 10.dp),
+                    .padding(vertical = 10.dp),
                 _text = "",
             ){
                 text = it
@@ -227,19 +229,25 @@ fun InventoryList(
         }
     }
     LazyColumn(
+        modifier = Modifier
+            .testTag(INVENTORY_ITEM_LAZY_COLUMN),
         contentPadding = PaddingValues(16.dp),
-
     ){
         items(
             count = inventoryList.value.size,
             key = { it }
         ){
             InventoryItem(
-                modifier = Modifier.animateItemPlacement(
-                    animationSpec = tween(
-                        durationMillis = 500
+                modifier = Modifier
+                    .animateItemPlacement(
+                        animationSpec = tween(
+                            durationMillis = 500
+                        )
                     )
-                ),
+                    .semantics {
+                        inventoryLazyTitle = inventoryList.value[it].title
+                    }
+                    .testTag(inventoryList.value[it].title),
                 item = inventoryList.value[it],
                 verticalPadding = 8.dp,
                 contentPadding = 8.dp,
@@ -465,7 +473,7 @@ fun InventoryItem(
     onEdit: (InventoryEntity) -> Unit,
     onDelete: (InventoryEntity)  -> Unit,
     onHistory: (InventoryEntity)  -> Unit
-) {
+){
     RightToLeftLayout {
         Box(
             modifier = modifier
@@ -484,37 +492,33 @@ fun InventoryItem(
             contentAlignment = Alignment.TopStart
         ) {
             Row(
-                modifier = modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
                 Column(
-                    modifier = modifier.padding(contentPadding),
+                    modifier = Modifier.padding(contentPadding),
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
                 ){
                     Text(
-                        modifier = modifier,
                         text ="نام کالا: ${item.title}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colors.onPrimary
                     )
                     Text(
-                        modifier = modifier,
                         text ="تعداد کالا: ${item.number}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = MaterialTheme.colors.onPrimary
                     )
                     Text(
-                        modifier = modifier,
                         text ="قیمت خرید کالا: ${item.buyPrice}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = MaterialTheme.colors.onPrimary
                     )
                     Text(
-                        modifier = modifier,
                         text ="قیمت فروش کالا: ${item.sellPrice}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
@@ -529,7 +533,7 @@ fun InventoryItem(
                     horizontalAlignment = Alignment.End
                 ){
                     Box(
-                        modifier = modifier
+                        modifier = Modifier
                             .border(
                                 width = 1.dp,
                                 color = MaterialTheme.colors.onSurface,
@@ -541,7 +545,7 @@ fun InventoryItem(
                             )
                     ){
                         Text(
-                            modifier = modifier.padding(3.dp),
+                            modifier = Modifier.padding(3.dp),
                             text ="حاشیه سود کالا: ${item.sellPrice.toLong() - item.buyPrice.toLong()}",
                             fontFamily = persian_font_semi_bold,
                             fontSize = 14.sp,
@@ -553,13 +557,13 @@ fun InventoryItem(
                     Row(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.Bottom,
-                        modifier = modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = null,
                             tint = Color.Black,
-                            modifier = modifier
+                            modifier = Modifier
                                 .offset(x = (-20).dp)
                                 .size(40.dp)
                                 .background(
@@ -580,7 +584,7 @@ fun InventoryItem(
                             imageVector = Icons.Default.Delete,
                             contentDescription = null,
                             tint = Color.Black,
-                            modifier = modifier
+                            modifier = Modifier
                                 .offset(x = (-10).dp)
                                 .size(40.dp)
                                 .background(
@@ -601,7 +605,7 @@ fun InventoryItem(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = null,
                             tint = Color.Black,
-                            modifier = modifier
+                            modifier = Modifier
                                 .size(40.dp)
                                 .background(
                                     color = Color.Yellow,

@@ -12,7 +12,7 @@ interface Repository {
     suspend fun deleteInventory(inventoryEntity: InventoryEntity)
     suspend fun updateInventory(inventoryEntity: InventoryEntity)
     fun fetchAllInventory(): Flow<List<InventoryEntity>>
-    suspend fun getHistoriesByInventoryTimeStamp(id: Long): InventoryWithHistory
+    suspend fun getHistoriesByInventoryTimeStamp(createdTimeStamp: Long): InventoryWithHistory
     suspend fun insertHistory(history: History)
     suspend fun deleteHistory(history: History)
     suspend fun updateHistory(history: History)

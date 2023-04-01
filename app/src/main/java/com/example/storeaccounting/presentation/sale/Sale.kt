@@ -24,15 +24,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.core.TestTag
+import com.example.storeaccounting.core.TestTag.SALE_ITEM_BOTTOM_SHEET_LAZY_COLUMN
+import com.example.storeaccounting.core.TestTag.SALE_ITEM_LAZY_COLUMN
+import com.example.storeaccounting.core.TestTag.inventoryLazyTitle
+import com.example.storeaccounting.core.TestTag.saleLazyTitle
 import com.example.storeaccounting.core.TestTag.saleTitle
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
@@ -65,11 +67,9 @@ import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.line.lineSpec
-import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlin.math.nextUp
 
 
 @Composable
@@ -390,7 +390,8 @@ fun SaleContent(
         mutableStateOf<History?>(null)
     }
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier
+            .testTag(SALE_ITEM_LAZY_COLUMN),
         contentPadding = PaddingValues(10.dp),
     ){
         items(
@@ -398,11 +399,16 @@ fun SaleContent(
             key = { it }
         ){
             SaleItem(
-                modifier = Modifier.animateItemPlacement(
-                    animationSpec = tween(
-                        durationMillis = 500
+                modifier = Modifier
+                    .animateItemPlacement(
+                        animationSpec = tween(
+                            durationMillis = 500
+                        )
                     )
-                ),
+                    .semantics {
+                        saleLazyTitle = saleHistoryList[it].title
+                    }
+                    .testTag(saleHistoryList[it].title+"@"),
                 item = saleHistoryList[it],
                 onDelete = {
                     deleteHistory = it
@@ -491,7 +497,7 @@ fun SaleBottomSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
-                    .testTag(TestTag.SALE_ITEM_COLUMN),
+                    .testTag(SALE_ITEM_BOTTOM_SHEET_LAZY_COLUMN),
                 contentPadding = PaddingValues(10.dp),
             ){
                 items(
@@ -551,7 +557,7 @@ fun SaleBottomSheetContent(
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp, vertical = 10.dp),
                 _text = number,
-                testTag = TestTag.SALE_NAME
+                testTag = TestTag.SALE_NUMBER
             ){
                 number = it
             }
@@ -652,7 +658,6 @@ fun SaleBottomSheetContent(
                             Toast.makeText(context,"لطفا ابتدا کالا مورد نظر را انتخاب کنید."
                                 ,Toast.LENGTH_SHORT).show()
                         }
-
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF008506))
@@ -683,7 +688,6 @@ fun SaleBottomSheetItem(
     isSelected: Boolean = false,
     onSelect:(InventoryEntity) -> Unit
 ){
-
     RightToLeftLayout {
         Row(
             modifier = modifier
@@ -726,7 +730,6 @@ fun SaleBottomSheetItem(
                 fontSize = 16.sp
             )
             Box(contentAlignment = Alignment.Center){
-
                 Icon(
                     modifier = Modifier
                         .size(size = 35.dp)
