@@ -12,7 +12,6 @@ object Utility {
     )
     fun changeNumberToString(number: Long):String{
 
-
         val map : MutableMap<Int,List<Char>> = mutableMapOf()
         val numberSize = number.toString().count()
         val stringNumber = number.toString()
@@ -138,6 +137,7 @@ object Utility {
            return s
         }
     }
+
 }
 
 // 000,000,000,000

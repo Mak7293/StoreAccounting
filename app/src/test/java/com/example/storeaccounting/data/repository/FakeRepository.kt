@@ -21,18 +21,11 @@ class FakeRepository:Repository {
         inventoryList.remove(inventoryEntity)
     }
     override suspend fun updateInventory(inventoryEntity: InventoryEntity) {
-        inventoryList.filter {
-            it.id == inventoryEntity.id
-        }.last().copy(
-            id = inventoryEntity.id,
-            title = inventoryEntity.title,
-            number = inventoryEntity.number,
-            buyPrice = inventoryEntity.buyPrice,
-            sellPrice = inventoryEntity.sellPrice,
-            createdTimeStamp = inventoryEntity.createdTimeStamp,
-            timeStamp = inventoryEntity.timeStamp,
-            date = inventoryEntity.date
-        )
+        val oldInventory = inventoryList.filter {
+            it.createdTimeStamp == inventoryEntity.createdTimeStamp
+        }.first()
+        inventoryList.remove(oldInventory)
+        inventoryList.add(inventoryEntity)
     }
     override fun fetchAllInventory(): Flow<List<InventoryEntity>> {
         return flow {
@@ -59,20 +52,11 @@ class FakeRepository:Repository {
         historyList.remove(history)
     }
     override suspend fun updateHistory(history: History) {
-        historyList.filter {
+        val oldHistory = historyList.filter {
             it.id == history.id
-        }.last().copy(
-            id = history.id,
-            title = history.title,
-            buyPrice = history.buyPrice,
-            sellPrice = history.sellPrice,
-            createdTimeStamp = history.createdTimeStamp,
-            timeStamp = history.timeStamp,
-            date = history.date,
-            transaction = history.transaction,
-            remainingInventory = history.remainingInventory,
-            saleNumber = history.saleNumber
-        )
+        }.first()
+        historyList.remove(oldHistory)
+        historyList.add(history)
     }
     override fun fetchAllHistory(): Flow<List<History>> {
         return flow{

@@ -7,7 +7,7 @@ import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.repository.Repository
 
-class UpdateSaleHistory(private val repository: Repository, private val resource: Resources) {
+class UpdateSaleHistory(private val repository: Repository) {
 
     suspend operator fun invoke(
         inventoryEntity: InventoryEntity,
@@ -15,15 +15,15 @@ class UpdateSaleHistory(private val repository: Repository, private val resource
         oldHistory: History
     ){
         if(newHistory.saleNumber.isBlank()){
-            throw InvalidTransactionException(resource.getString(R.string.blank_number_exception))
+            throw InvalidTransactionException("تعداد کالا را وارد کنید.")
         }else if(checkNumberIsNotNegative(newHistory.saleNumber)){
-            throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
+            throw InvalidTransactionException("تعداد کالا نمیتواند منفی باشد.")
         }else if (checkNumberIsDigit(newHistory.saleNumber)){
-            throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
+            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد.")
         }else if (newHistory.saleNumber.toLong() == 0L){
-            throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
+            throw InvalidTransactionException("تعداد کالا نمیتواند صفر باشد.")
         }else if (newHistory.remainingInventory < 0){
-            throw InvalidTransactionException(resource.getString(R.string.sale_number_exception))
+            throw InvalidTransactionException("تعداد کالای فروخته شده نمیتواند بیشتر از تعداد کالای موجود باشد.")
         }
 
         if(oldHistory.createdTimeStamp == newHistory.createdTimeStamp){

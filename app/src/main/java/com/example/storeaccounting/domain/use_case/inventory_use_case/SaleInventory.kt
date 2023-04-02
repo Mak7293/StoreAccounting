@@ -7,22 +7,22 @@ import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.repository.Repository
 
-class SaleInventory(private val repository: Repository, private val resource: Resources) {
+class SaleInventory(private val repository: Repository) {
 
     suspend operator fun invoke (
         inventoryEntity: InventoryEntity, 
         history: History
     ){
         if(inventoryEntity.number.isBlank()){
-            throw InvalidTransactionException(resource.getString(R.string.blank_number_exception))
+            throw InvalidTransactionException("تعداد کالا را وارد کنید.")
         }else if(checkNumberIsNotNegative(inventoryEntity.number)){
-            throw InvalidTransactionException(resource.getString(R.string.negative_number_exception))
+            throw InvalidTransactionException("تعداد کالا نمیتواند منفی باشد.")
         }else if (checkNumberIsDigit(inventoryEntity.number)){
-            throw InvalidTransactionException(resource.getString(R.string.digit_number_exception))
+            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد.")
         }else if (history.saleNumber.toLong() == 0L){
-            throw InvalidTransactionException(resource.getString(R.string.zero_number_exception))
+            throw InvalidTransactionException("تعداد کالا نمیتواند صفر باشد.")
         }else if (inventoryEntity.number.toLong() < 0L){
-            throw InvalidTransactionException(resource.getString(R.string.sale_number_exception))
+            throw InvalidTransactionException("تعداد کالای فروخته شده نمیتواند بیشتر از تعداد کالای موجود باشد.")
         }
         repository.updateInventory(inventoryEntity)
         repository.insertHistory(history)

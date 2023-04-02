@@ -56,16 +56,16 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideInventoryUseCases(repository: Repository, app: Application): InventoryUseCases {
+    fun provideInventoryUseCases(repository: Repository): InventoryUseCases {
         return InventoryUseCases(
-            addInventory = AddInventory(repository,app.resources),
+            addInventory = AddInventory(repository),
             getInventory = GetInventory(repository),
             deleteInventory = DeleteInventory(repository),
-            updateInventory = UpdateInventory(repository,app.resources),
+            updateInventory = UpdateInventory(repository),
             getHistoryListForSpecificInventory = GetHistoryListForSpecificInventory(repository),
             getHistory = GetHistory(repository),
-            saleInventory = SaleInventory(repository,app.resources),
-            updateSaleHistory = UpdateSaleHistory(repository,app.resources),
+            saleInventory = SaleInventory(repository),
+            updateSaleHistory = UpdateSaleHistory(repository),
             deleteSaleHistory = DeleteSaleHistory(repository)
         )
     }
