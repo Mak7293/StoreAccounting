@@ -28,7 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.core.TestTag
+import com.example.storeaccounting.core.TestTag.CLOSE_INVENTORY_BOTTOM_SHEET
+import com.example.storeaccounting.core.TestTag.INVENTORY_BOTTOM_SHEET
 import com.example.storeaccounting.core.TestTag.INVENTORY_ITEM_LAZY_COLUMN
+import com.example.storeaccounting.core.TestTag.INVENTORY_SEARCH
 import com.example.storeaccounting.core.TestTag.inventoryLazyTitle
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
@@ -191,6 +194,7 @@ fun InventoryHistory(
                     .fillMaxWidth()
                     .padding(vertical = 10.dp),
                 _text = "",
+                testTag = INVENTORY_SEARCH
             ){
                 text = it
                 viewModel.onEvent(InventorySaleEvent.FilterInventory(it))
@@ -399,7 +403,8 @@ fun AddEditInventoryBottomSheetContent(
             ){
                 Button(
                     modifier = Modifier
-                        .width(175.dp),
+                        .width(175.dp)
+                        .testTag(CLOSE_INVENTORY_BOTTOM_SHEET),
                     onClick = {
                         onDismiss()
                         title = ""

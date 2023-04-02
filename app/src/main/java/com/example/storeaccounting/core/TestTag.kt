@@ -10,6 +10,15 @@ object TestTag {
     const val INVENTORY_SELL_PRICE = "inventory_sell_price"
     const val INVENTORY_ADD = "inventory_add"
 
+    const val CLOSE_INVENTORY_BOTTOM_SHEET = "close_inventory_bottom_sheet"
+    const val INVENTORY_BOTTOM_SHEET = "inventory_bottom_sheet"
+    const val CLOSE_SALE_BOTTOM_SHEET = "close_sale_bottom_sheet"
+    const val SALE_BOTTOM_SHEET = "sale_bottom_sheet"
+
+    const val INVENTORY_SEARCH = "inventory_search"
+
+
+
     const val SALE_NUMBER = "sale_name"
     const val SALE_ADD = "sale_add"
     const val SALE_ITEM_BOTTOM_SHEET_LAZY_COLUMN = "sale_item_bottom_sheet_lazy_column"

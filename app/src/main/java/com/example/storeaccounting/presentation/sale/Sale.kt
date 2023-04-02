@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.storeaccounting.core.TestTag
+import com.example.storeaccounting.core.TestTag.CLOSE_SALE_BOTTOM_SHEET
+import com.example.storeaccounting.core.TestTag.SALE_BOTTOM_SHEET
 import com.example.storeaccounting.core.TestTag.SALE_ITEM_BOTTOM_SHEET_LAZY_COLUMN
 import com.example.storeaccounting.core.TestTag.SALE_ITEM_LAZY_COLUMN
 import com.example.storeaccounting.core.TestTag.inventoryLazyTitle
@@ -458,7 +460,8 @@ fun SaleBottomSheetContent(
     onCancel:() ->  Unit
 ){
     Box(
-        modifier = modifier,
+        modifier = modifier
+            .testTag(SALE_BOTTOM_SHEET),
         contentAlignment = Alignment.Center
     ){
         val currentDate = PersianDateFormat("Y/m/d")
@@ -590,7 +593,9 @@ fun SaleBottomSheetContent(
                 horizontalArrangement = Arrangement.SpaceAround
             ){
                 Button(
-                    modifier = Modifier.width(175.dp),
+                    modifier = Modifier
+                        .width(175.dp)
+                        .testTag(CLOSE_SALE_BOTTOM_SHEET),
                     onClick = {
                         onCancel()
                     },
