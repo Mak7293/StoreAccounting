@@ -619,7 +619,7 @@ fun SaleBottomSheetContent(
                                     number = (inventoryEntity.value!!.number.toLong() - number.toLong()).toString()
                                 )
                                 val newHistory = History(
-                                    id=oldHistory?.id ,
+                                    id = oldHistory?.id ,
                                     createdTimeStamp = newInventoryEntity.createdTimeStamp,
                                     remainingInventory =
                                     if(newInventoryEntity.createdTimeStamp == oldHistory?.createdTimeStamp){

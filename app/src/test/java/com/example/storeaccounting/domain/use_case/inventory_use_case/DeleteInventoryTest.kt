@@ -87,6 +87,8 @@ class DeleteInventoryTest{
                     assert(false)
                 }
             }
+        }else{
+            assert(false)
         }
     }
 }

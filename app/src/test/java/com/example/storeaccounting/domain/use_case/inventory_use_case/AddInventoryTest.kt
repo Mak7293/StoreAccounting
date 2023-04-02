@@ -76,6 +76,8 @@ class AddInventoryTest{
                 }
             }
             assert(insertTest)
+        }else{
+            assert(false)
         }
     }
     // title field unit test

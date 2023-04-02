@@ -38,7 +38,6 @@ class UpdateSaleHistory(private val repository: Repository) {
                     oldHistory.saleNumber.toLong()).toString())
             repository.updateInventory(rollbackOldInventory)
 
-
             repository.updateInventory(inventoryEntity)
             repository.updateHistory(newHistory)
 

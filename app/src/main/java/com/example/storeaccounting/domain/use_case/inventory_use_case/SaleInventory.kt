@@ -11,13 +11,13 @@ class SaleInventory(private val repository: Repository) {
 
     suspend operator fun invoke (
         inventoryEntity: InventoryEntity, 
-        history: History
+        history: History,
     ){
-        if(inventoryEntity.number.isBlank()){
+        if(history.saleNumber.isBlank()){
             throw InvalidTransactionException("تعداد کالا را وارد کنید.")
-        }else if(checkNumberIsNotNegative(inventoryEntity.number)){
+        }else if(checkNumberIsNotNegative(history.saleNumber)){
             throw InvalidTransactionException("تعداد کالا نمیتواند منفی باشد.")
-        }else if (checkNumberIsDigit(inventoryEntity.number)){
+        }else if (checkNumberIsDigit(history.saleNumber)){
             throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد.")
         }else if (history.saleNumber.toLong() == 0L){
             throw InvalidTransactionException("تعداد کالا نمیتواند صفر باشد.")

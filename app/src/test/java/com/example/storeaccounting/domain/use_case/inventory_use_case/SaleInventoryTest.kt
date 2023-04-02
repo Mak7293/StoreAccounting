@@ -1,12 +1,12 @@
 package com.example.storeaccounting.domain.use_case.inventory_use_case
 
 import com.example.storeaccounting.data.repository.FakeRepository
+import com.example.storeaccounting.domain.custom_exception.InvalidTransactionException
 import com.example.storeaccounting.domain.model.History
 import com.example.storeaccounting.domain.model.InventoryEntity
 import com.example.storeaccounting.domain.util.TransactionState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
@@ -70,50 +70,343 @@ class SaleInventoryTest{
             }
         }
         assert(insertTest)
-        // test update inventory
+        // test sale inventory
         if(insertTest){
-            val sellNumber = 4
-            val newInventory = inventory.copy(
-                timeStamp = System.currentTimeMillis(),
-                number = (inventory.number.toLong() - sellNumber).toString()
-            )
-            val newHistory = History(
-                title = newInventory.title,
-                timeStamp = System.currentTimeMillis(),
-                sellPrice = newInventory.sellPrice,
-                buyPrice = newInventory.buyPrice,
-                date = newInventory.date,
-                saleNumber = sellNumber.toString(),
-                createdTimeStamp = newInventory.createdTimeStamp,
-                remainingInventory = newInventory.number.toLong(),
-                transaction = TransactionState.Sale.state
-            )
-            saleInventory(
-                inventoryEntity = newInventory,
-                history = newHistory
-            )
-            val inventories = getInventory().first()
-            val histories = getHistory().first()
-            var inventoryTest = false
-            for (i in inventories){
-                if(i.createdTimeStamp == newInventory.createdTimeStamp &&
-                            i.number == (inventory.number.toLong() - sellNumber).toString()
-                ){
-                    inventoryTest = true
-                    break
+            try {
+                val sellNumber = 4
+                val newInventory = inventory.copy(
+                    timeStamp = System.currentTimeMillis(),
+                    number = (inventory.number.toLong() - sellNumber).toString()
+                )
+                val newHistory = History(
+                    title = newInventory.title,
+                    timeStamp = System.currentTimeMillis(),
+                    sellPrice = newInventory.sellPrice,
+                    buyPrice = newInventory.buyPrice,
+                    date = newInventory.date,
+                    saleNumber = sellNumber.toString(),
+                    createdTimeStamp = newInventory.createdTimeStamp,
+                    remainingInventory = newInventory.number.toLong(),
+                    transaction = TransactionState.Sale.state
+                )
+                saleInventory(
+                    inventoryEntity = newInventory,
+                    history = newHistory
+                )
+                val newInventories = getInventory().first()
+                val histories = getHistory().first()
+                var inventoryTest = false
+                for (i in newInventories) {
+                    if (i.createdTimeStamp == newInventory.createdTimeStamp &&
+                        i.number == (inventory.number.toLong() - sellNumber).toString()
+                    ) {
+                        inventoryTest = true
+                        break
+                    }
                 }
-            }
-            assert(inventoryTest)
-            var historyTest = false
-            for (i in histories){
-                if(i.createdTimeStamp == newHistory.createdTimeStamp &&
-                    i.remainingInventory.toString() == (inventory.number.toLong() - sellNumber).toString() &&
-                            i.transaction == TransactionState.Sale.state
-                ){
-                    historyTest = true
+                assert(inventoryTest)
+                var historyTest = false
+                for (i in histories) {
+                    if (i.createdTimeStamp == newHistory.createdTimeStamp &&
+                        i.remainingInventory.toString() == (inventory.number.toLong() - sellNumber).toString() &&
+                        i.transaction == TransactionState.Sale.state
+                    ) {
+                        historyTest = true
+                    }
                 }
+                assert(historyTest)
+            }catch (e: java.lang.NumberFormatException){
+                e.printStackTrace()
+                assert(true)
             }
-            assert(historyTest)
+        }else{
+            assert(false)
         }
     }
+    // number field unit test
+    @Test
+    fun throwAnExceptionForEmptyNumber() = runBlocking{
+        val string = "string"
+        val inventory = InventoryEntity(
+            title = string,
+            date = string,
+            timeStamp = System.currentTimeMillis(),
+            createdTimeStamp = System.currentTimeMillis(),
+            buyPrice =(string.length*(10..15).random()).toString(),
+            sellPrice = (string.length*(15..20).random()).toString(),
+            number = (string.length*(5..10).random()).toString()
+        )
+        // test add inventory
+        addInventory(inventory)
+        val inventories = getInventory().first()
+        var insertTest: Boolean = false
+        for(i in inventories){
+            if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
+                && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
+                && inventory.number==i.number){
+                insertTest = true
+            }
+        }
+        assert(insertTest)
+        // test sale inventory
+        if(insertTest) {
+            try {
+                val sellNumber = ""
+                val newInventory = inventory.copy(
+                    timeStamp = System.currentTimeMillis(),
+                    number = (inventory.number.toLong() - sellNumber.toLong()).toString()
+                )
+                val newHistory = History(
+                    title = newInventory.title,
+                    timeStamp = System.currentTimeMillis(),
+                    sellPrice = newInventory.sellPrice,
+                    buyPrice = newInventory.buyPrice,
+                    date = newInventory.date,
+                    saleNumber = sellNumber.toString(),
+                    createdTimeStamp = newInventory.createdTimeStamp,
+                    remainingInventory = newInventory.number.toLong(),
+                    transaction = TransactionState.Sale.state
+                )
+                try {
+                    saleInventory(
+                        inventoryEntity = newInventory,
+                        history = newHistory
+                    )
+                    assert(false)
+                } catch (e: InvalidTransactionException) {
+                    assert(true)
+                }
+            }catch (e: java.lang.NumberFormatException){
+                e.printStackTrace()
+            }
+        }
+    }
+     @Test
+     fun throwAnExceptionForNegativeNumber() = runBlocking{
+         val string = "string"
+         val inventory = InventoryEntity(
+             title = string,
+             date = string,
+             timeStamp = System.currentTimeMillis(),
+             createdTimeStamp = System.currentTimeMillis(),
+             buyPrice =(string.length*(10..15).random()).toString(),
+             sellPrice = (string.length*(15..20).random()).toString(),
+             number = (string.length*(5..10).random()).toString()
+         )
+         // test add inventory
+         addInventory(inventory)
+         val inventories = getInventory().first()
+         var insertTest: Boolean = false
+         for(i in inventories){
+             if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
+                 && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
+                 && inventory.number==i.number){
+                 insertTest = true
+             }
+         }
+         assert(insertTest)
+         // test sale inventory
+         if(insertTest) {
+             try {
+                 val sellNumber = -4
+                 val newInventory = inventory.copy(
+                     timeStamp = System.currentTimeMillis(),
+                     number = (inventory.number.toLong() - sellNumber).toString()
+                 )
+                 val newHistory = History(
+                     title = newInventory.title,
+                     timeStamp = System.currentTimeMillis(),
+                     sellPrice = newInventory.sellPrice,
+                     buyPrice = newInventory.buyPrice,
+                     date = newInventory.date,
+                     saleNumber = sellNumber.toString(),
+                     createdTimeStamp = newInventory.createdTimeStamp,
+                     remainingInventory = newInventory.number.toLong(),
+                     transaction = TransactionState.Sale.state
+                 )
+                 try {
+                     saleInventory(
+                         inventoryEntity = newInventory,
+                         history = newHistory
+                     )
+                     assert(false)
+                 } catch (e: InvalidTransactionException) {
+                     assert(true)
+                 }
+             }catch (e: java.lang.NumberFormatException){
+                 e.printStackTrace()
+             }
+         }
+     }
+     @Test
+     fun throwAnExceptionForNumberIsNotDigit() = runBlocking{
+         val string = "string"
+         val inventory = InventoryEntity(
+             title = string,
+             date = string,
+             timeStamp = System.currentTimeMillis(),
+             createdTimeStamp = System.currentTimeMillis(),
+             buyPrice =(string.length*(10..15).random()).toString(),
+             sellPrice = (string.length*(15..20).random()).toString(),
+             number = (string.length*(5..10).random()).toString()
+         )
+         // test add inventory
+         addInventory(inventory)
+         val inventories = getInventory().first()
+         var insertTest: Boolean = false
+         for(i in inventories){
+             if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
+                 && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
+                 && inventory.number==i.number){
+                 insertTest = true
+             }
+         }
+         assert(insertTest)
+         // test sale inventory
+         if(insertTest) {
+             try {
+                 val sellNumber = "D"
+                 val newInventory = inventory.copy(
+                     timeStamp = System.currentTimeMillis(),
+                     number = (inventory.number.toLong() - sellNumber.toLong()).toString()
+                 )
+                 val newHistory = History(
+                     title = newInventory.title,
+                     timeStamp = System.currentTimeMillis(),
+                     sellPrice = newInventory.sellPrice,
+                     buyPrice = newInventory.buyPrice,
+                     date = newInventory.date,
+                     saleNumber = sellNumber.toString(),
+                     createdTimeStamp = newInventory.createdTimeStamp,
+                     remainingInventory = newInventory.number.toLong(),
+                     transaction = TransactionState.Sale.state
+                 )
+                 try {
+                     saleInventory(
+                         inventoryEntity = newInventory,
+                         history = newHistory
+                     )
+                     assert(false)
+                 } catch (e: InvalidTransactionException) {
+                     assert(true)
+                 }
+             }catch (e: java.lang.NumberFormatException){
+                 e.printStackTrace()
+             }
+         }
+     }
+     @Test
+     fun throwAnExceptionForZeroNumber() = runBlocking{
+         val string = "string"
+         val inventory = InventoryEntity(
+             title = string,
+             date = string,
+             timeStamp = System.currentTimeMillis(),
+             createdTimeStamp = System.currentTimeMillis(),
+             buyPrice =(string.length*(10..15).random()).toString(),
+             sellPrice = (string.length*(15..20).random()).toString(),
+             number = (string.length*(5..10).random()).toString()
+         )
+         // test add inventory
+         addInventory(inventory)
+         val inventories = getInventory().first()
+         var insertTest: Boolean = false
+         for(i in inventories){
+             if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
+                 && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
+                 && inventory.number==i.number){
+                 insertTest = true
+             }
+         }
+         assert(insertTest)
+         // test sale inventory
+         if(insertTest) {
+             try {
+                 val sellNumber = 0
+                 val newInventory = inventory.copy(
+                     timeStamp = System.currentTimeMillis(),
+                     number = (inventory.number.toLong() - sellNumber.toLong()).toString()
+                 )
+                 val newHistory = History(
+                     title = newInventory.title,
+                     timeStamp = System.currentTimeMillis(),
+                     sellPrice = newInventory.sellPrice,
+                     buyPrice = newInventory.buyPrice,
+                     date = newInventory.date,
+                     saleNumber = sellNumber.toString(),
+                     createdTimeStamp = newInventory.createdTimeStamp,
+                     remainingInventory = newInventory.number.toLong(),
+                     transaction = TransactionState.Sale.state
+                 )
+                 try {
+                     saleInventory(
+                         inventoryEntity = newInventory,
+                         history = newHistory
+                     )
+                     assert(false)
+                 } catch (e: InvalidTransactionException) {
+                     assert(true)
+                 }
+             }catch (e: java.lang.NumberFormatException){
+                 e.printStackTrace()
+             }
+         }
+     }
+     @Test
+     fun throwAnExceptionForMoreThanTheNumberOfAvailableItems() = runBlocking{
+         val string = "string"
+         val inventory = InventoryEntity(
+             title = string,
+             date = string,
+             timeStamp = System.currentTimeMillis(),
+             createdTimeStamp = System.currentTimeMillis(),
+             buyPrice =(string.length*(10..15).random()).toString(),
+             sellPrice = (string.length*(15..20).random()).toString(),
+             number = (string.length*(5..10).random()).toString()
+         )
+         // test add inventory
+         addInventory(inventory)
+         val inventories = getInventory().first()
+         var insertTest: Boolean = false
+         for(i in inventories){
+             if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
+                 && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
+                 && inventory.number==i.number){
+                 insertTest = true
+             }
+         }
+         assert(insertTest)
+         // test sale inventory
+         if(insertTest) {
+             try {
+                 val sellNumber = 100
+                 val newInventory = inventory.copy(
+                     timeStamp = System.currentTimeMillis(),
+                     number = (inventory.number.toLong() - sellNumber.toLong()).toString()
+                 )
+                 val newHistory = History(
+                     title = newInventory.title,
+                     timeStamp = System.currentTimeMillis(),
+                     sellPrice = newInventory.sellPrice,
+                     buyPrice = newInventory.buyPrice,
+                     date = newInventory.date,
+                     saleNumber = sellNumber.toString(),
+                     createdTimeStamp = newInventory.createdTimeStamp,
+                     remainingInventory = newInventory.number.toLong(),
+                     transaction = TransactionState.Sale.state
+                 )
+                 try {
+                     saleInventory(
+                         inventoryEntity = newInventory,
+                         history = newHistory
+                     )
+                     assert(false)
+                 } catch (e: InvalidTransactionException) {
+                     assert(true)
+                 }
+             }catch (e: java.lang.NumberFormatException){
+                 e.printStackTrace()
+             }
+         }
+     }
 }

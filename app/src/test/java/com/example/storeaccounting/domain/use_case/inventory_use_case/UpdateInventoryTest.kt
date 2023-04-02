@@ -97,6 +97,8 @@ class UpdateInventoryTest{
                 }
             }
             assert(historyTest)
+        }else{
+            assert(false)
         }
     }
     // title field unit test
@@ -138,63 +140,63 @@ class UpdateInventoryTest{
     // number field unit test
     @Test
     fun throwAnExceptionForEmptyNumber() = runBlocking{
-        val string = "string"
-        val inventory = InventoryEntity(
-            title = string,
-            date = string,
-            timeStamp = System.currentTimeMillis(),
-            createdTimeStamp = System.currentTimeMillis(),
-            buyPrice =(string.length*(10..15).random()).toString(),
-            sellPrice = (string.length*(15..20).random()).toString(),
-            number = (string.length*(5..10).random()).toString()
-        )
-        // test add inventory
-        addInventory(inventory)
-        val inventories = getInventory().first()
-        var insertTest: Boolean = false
-        for(i in inventories){
-            if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
-                && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
-                && inventory.number==i.number){
-                insertTest = true
+            val string = "string"
+            val inventory = InventoryEntity(
+                title = string,
+                date = string,
+                timeStamp = System.currentTimeMillis(),
+                createdTimeStamp = System.currentTimeMillis(),
+                buyPrice =(string.length*(10..15).random()).toString(),
+                sellPrice = (string.length*(15..20).random()).toString(),
+                number = (string.length*(5..10).random()).toString()
+            )
+            // test add inventory
+            addInventory(inventory)
+            val inventories = getInventory().first()
+            var insertTest: Boolean = false
+            for(i in inventories){
+                if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
+                    && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
+                    && inventory.number==i.number){
+                    insertTest = true
+                }
+            }
+            assert(insertTest)
+            // test throwing exception for empty number
+            if(insertTest){
+                val newInventory = inventory.copy(number = "")
+                try {
+                    updateInventory(newInventory)
+                    assert(false)
+                }catch (e: InvalidTransactionException){
+                    assert(true)
+                }
             }
         }
-        assert(insertTest)
-        // test throwing exception for empty number
-        if(insertTest){
-            val newInventory = inventory.copy(number = "")
-            try {
-                updateInventory(newInventory)
-                assert(false)
-            }catch (e: InvalidTransactionException){
-                assert(true)
+        @Test
+        fun throwAnExceptionForNegativeNumber() = runBlocking{
+            val string = "string"
+            val inventory = InventoryEntity(
+                title = string,
+                date = string,
+                timeStamp = System.currentTimeMillis(),
+                createdTimeStamp = System.currentTimeMillis(),
+                buyPrice =(string.length*(10..15).random()).toString(),
+                sellPrice = (string.length*(15..20).random()).toString(),
+                number = (string.length*(5..10).random()).toString()
+            )
+            // test add inventory
+            addInventory(inventory)
+            val inventories = getInventory().first()
+            var insertTest: Boolean = false
+            for(i in inventories){
+                if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
+                    && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
+                    && inventory.number==i.number){
+                    insertTest = true
+                }
             }
-        }
-    }
-    @Test
-    fun throwAnExceptionForNegativeNumber() = runBlocking{
-        val string = "string"
-        val inventory = InventoryEntity(
-            title = string,
-            date = string,
-            timeStamp = System.currentTimeMillis(),
-            createdTimeStamp = System.currentTimeMillis(),
-            buyPrice =(string.length*(10..15).random()).toString(),
-            sellPrice = (string.length*(15..20).random()).toString(),
-            number = (string.length*(5..10).random()).toString()
-        )
-        // test add inventory
-        addInventory(inventory)
-        val inventories = getInventory().first()
-        var insertTest: Boolean = false
-        for(i in inventories){
-            if(inventory.title == i.title && inventory.date == i.date && inventory.createdTimeStamp == i.createdTimeStamp
-                && inventory.timeStamp == i.timeStamp && inventory.buyPrice == i.buyPrice && inventory.sellPrice==i.sellPrice
-                && inventory.number==i.number){
-                insertTest = true
-            }
-        }
-        assert(insertTest)
+            assert(insertTest)
         // test throwing exception for negative number
         if(insertTest){
             val newInventory = inventory.copy(number = "-5")
