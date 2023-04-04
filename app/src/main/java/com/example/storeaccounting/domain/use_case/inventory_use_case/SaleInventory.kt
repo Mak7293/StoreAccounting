@@ -18,7 +18,7 @@ class SaleInventory(private val repository: Repository) {
         }else if(checkNumberIsNotNegative(history.saleNumber)){
             throw InvalidTransactionException("تعداد کالا نمیتواند منفی باشد.")
         }else if (checkNumberIsDigit(history.saleNumber)){
-            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد.")
+            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد. همچنین نباید شامل فاصله خالی باشد.")
         }else if (history.saleNumber.toLong() == 0L){
             throw InvalidTransactionException("تعداد کالا نمیتواند صفر باشد.")
         }else if (inventoryEntity.number.toLong() < 0L){

@@ -596,7 +596,7 @@ fun SaleHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="سود حاصل از قروش کالا: ${(item.sellPrice.toLong() - item.buyPrice.toLong()) * item.saleNumber.toLong()}",
+                        text ="سود حاصل از فروش کالا: ${(item.sellPrice.toLong() - item.buyPrice.toLong()) * item.saleNumber.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black

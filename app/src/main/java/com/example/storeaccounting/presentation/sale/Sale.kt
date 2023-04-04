@@ -199,7 +199,6 @@ fun Sale(
                     .padding(end = 10.dp)
                 ){
                     val a = graphList.value.map { it }.toTypedArray()
-                    Log.d("resultGraph",graphList.toString())
                     val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(*a))
                     Chart(
                         chart =
