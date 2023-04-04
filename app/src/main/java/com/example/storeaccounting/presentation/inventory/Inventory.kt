@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.storeaccounting.core.FakeEntries
 import com.example.storeaccounting.core.TestTag
 import com.example.storeaccounting.core.TestTag.CLOSE_INVENTORY_BOTTOM_SHEET
 import com.example.storeaccounting.core.TestTag.INVENTORY_BOTTOM_SHEET
@@ -140,7 +141,7 @@ fun InventoryContent(
         CustomAcceptRefuseDialog(
             modifier = Modifier
                 .width(350.dp)
-                .height(175.dp),
+                .height(200.dp),
             setShowDialog = {
                 showDeleteDialog.value = it
             },
@@ -181,6 +182,9 @@ fun InventoryHistory(
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable {
+                               FakeEntries.fake(viewModel)
+                    }
                 ,
                 textAlign = TextAlign.Start,
                 text = "لیست کالا های فروشگاه:",
@@ -309,10 +313,21 @@ fun AddEditInventoryBottomSheetContent(
             buyPrice = inventory?.buyPrice ?: ""
         }
     }
-    Log.d("iTitle",title)
-    Log.d("iNumber",number)
-    Log.d("iBuyprice",buyPrice)
-    Log.d("iSellprice",sellPrice)
+    LaunchedEffect(key1 = true){
+        inventorySaleViewModel.eventFlow.collectLatest { event  ->
+            when(event){
+                is InventorySaleViewModel.InventorySaleUiEvent.SaveInventory   ->  {
+                    title = ""
+                    number = ""
+                    buyPrice = ""
+                    sellPrice = ""
+                }
+                else -> {
+
+                }
+            }
+        }
+    }
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -442,13 +457,11 @@ fun AddEditInventoryBottomSheetContent(
                         )
                         if(inventory == null){
                             inventorySaleViewModel.onEvent(InventorySaleEvent.InsertInventory(inventoryEntity))
+
                         }else{
                             inventorySaleViewModel.onEvent(InventorySaleEvent.UpdateInventory(inventoryEntity))
                         }
-                        title = ""
-                        number = ""
-                        buyPrice = ""
-                        sellPrice = ""
+
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF008506))

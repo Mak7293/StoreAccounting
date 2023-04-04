@@ -172,9 +172,9 @@ fun AddEditCreditCardTopBar(
             CreditCard(
                 modifier = Modifier
                     .height(
-                        height = 200.dp
+                        height = 220.dp
                     )
-                    .width(330.dp),
+                    .width(350.dp),
                 lightColor = creditCardLight ,
                 mediumColor = creditCardMedium ,
                 darkColor = creditCardDark,
@@ -274,7 +274,6 @@ fun AddEditCreditCardTopBar(
         }
     }
 }
-
 @Composable
 fun CreditCard(
     modifier: Modifier = Modifier,

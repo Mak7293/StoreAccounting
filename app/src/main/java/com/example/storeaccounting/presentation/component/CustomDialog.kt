@@ -31,6 +31,7 @@ fun CustomAcceptRefuseDialog(
     modifier: Modifier = Modifier,
     title: String,
     content: String,
+    contentModifier: Modifier = Modifier,
     positiveButtonTitle: String,
     negativeButtonTitle: String,
     positiveButtonColor: Color,
@@ -74,9 +75,10 @@ fun CustomAcceptRefuseDialog(
                         color = MaterialTheme.colors.primaryVariant
                     )
                     Text(
-                        modifier = Modifier
+                        modifier = contentModifier
                             .fillMaxWidth()
-                            .padding(5.dp),
+                            .padding(5.dp)
+                            .verticalScroll(state = rememberScrollState()),
                         text = content,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colors.primaryVariant,
@@ -89,7 +91,7 @@ fun CustomAcceptRefuseDialog(
                     ){
                         Button(
                             modifier = Modifier
-                                .width(120.dp)
+                                .width(140.dp)
                                 .padding(5.dp),
                             shape = RoundedCornerShape(100),
                             colors = ButtonDefaults.buttonColors(
@@ -110,7 +112,7 @@ fun CustomAcceptRefuseDialog(
                         }
                         Button(
                             modifier = Modifier
-                                .width(120.dp)
+                                .width(140.dp)
                                 .padding(5.dp),
                             shape = RoundedCornerShape(100),
                             colors = ButtonDefaults.buttonColors(
@@ -375,7 +377,7 @@ fun CreateHistoryItem(
                     modifier = Modifier
                         .padding(all = 10.dp)
                         .fillMaxWidth(),
-                    text ="${item.date}",
+                    text = item.date,
                     fontFamily = persian_font_semi_bold,
                     fontSize = 14.sp,
                     color = Color.Black,
@@ -520,7 +522,7 @@ fun EditHistoryItem(
                     modifier = Modifier
                         .padding(all = 10.dp)
                         .fillMaxWidth(),
-                    text ="${item.date}",
+                    text = item.date,
                     fontFamily = persian_font_semi_bold,
                     fontSize = 14.sp,
                     color = Color.Black,
@@ -588,13 +590,13 @@ fun SaleHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="حاشیه سود کالا: ${item.sellPrice.toInt() - item.buyPrice.toInt()}",
+                        text ="حاشیه سود کالا: ${item.sellPrice.toLong() - item.buyPrice.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
                     )
                     Text(
-                        text ="سود حاصل از قروش کالا: ${(item.sellPrice.toInt() - item.buyPrice.toInt()) * item.saleNumber.toInt()}",
+                        text ="سود حاصل از قروش کالا: ${(item.sellPrice.toLong() - item.buyPrice.toLong()) * item.saleNumber.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -623,7 +625,7 @@ fun SaleHistoryItem(
                             shape = RoundedCornerShape(20.dp)
                         )
                         .padding(vertical = 5.dp, horizontal = 10.dp),
-                    text ="تراکنش : قروش کالا",
+                    text ="تراکنش : فروش کالا",
                     fontFamily = persian_font_semi_bold,
                     fontSize = 14.sp,
                     color = Color.Black,
@@ -633,7 +635,7 @@ fun SaleHistoryItem(
                     modifier = Modifier
                         .padding(all = 10.dp)
                         .fillMaxWidth(),
-                    text ="${item.date}",
+                    text = item.date,
                     fontFamily = persian_font_semi_bold,
                     fontSize = 14.sp,
                     color = Color.Black,

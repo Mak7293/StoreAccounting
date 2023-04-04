@@ -370,7 +370,7 @@ fun content(
                     .fillMaxWidth()
                     .padding(vertical = 5.dp, horizontal = 10.dp),
                 textAlign = TextAlign.Start,
-                text = "آموزش اضاقه کردن امضا به فاکتور:",
+                text = "آموزش اضافه کردن امضا به فاکتور:",
                 color = MaterialTheme.colors.onPrimary,
                 fontFamily = persian_font_regular,
                 fontSize = 18.sp
@@ -576,7 +576,8 @@ fun content(
                     },
                     modifier = Modifier
                         .width(350.dp)
-                        .height(400.dp)
+                        .height(350.dp),
+                    contentModifier = Modifier.height(250.dp)
                 )
             }
             if(restoreDialog){
@@ -599,8 +600,9 @@ fun content(
                     },
                     modifier = Modifier
                         .width(350.dp)
-                        .height(300.dp)
-                        .padding(all=5.dp)
+                        .height(360.dp)
+                        .padding(all=5.dp),
+                    contentModifier = Modifier.height(250.dp)
                 )
             }
             if (showPermissionDialog){
@@ -615,7 +617,8 @@ fun content(
                         .width(width = 300.dp)
                         .height(height = 200.dp),
                     shape = RoundedCornerShape(size = 20.dp),
-                    backgroundColor = MaterialTheme.colors.background
+                    backgroundColor = MaterialTheme.colors.background,
+                    content = "این اپلیکیشن برای ذخیره فایل های بک آپ نیاز به دسترسی به حافظه داخلی تلفن همراه دارد."
                 )
             }
         }

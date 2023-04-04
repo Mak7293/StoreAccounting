@@ -150,7 +150,8 @@ fun AddEditFactor(
                 .width(width = 300.dp)
                 .height(height = 200.dp),
             shape = RoundedCornerShape(size = 20.dp),
-            backgroundColor = MaterialTheme.colors.background
+            backgroundColor = MaterialTheme.colors.background,
+            content = "این اپلیکیشن برای ذخیره و انتشار فاکتور نیاز به دسترسی به حافظه داخلی تلفن همراه دارد."
         )
     }
 
@@ -1044,6 +1045,7 @@ fun PermissionDialog(
     onGoToAppSettingsClick: ()  -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape,
+    content: String,
     backgroundColor: Color
 ){
     RightToLeftLayout {
@@ -1089,7 +1091,7 @@ fun PermissionDialog(
             },
             text = {
                 Text(
-                    text = "این اپلیکیشن برای ذخیره و انتشار فاکتور نیاز به دسترسی به حافظه داخلی تلفن همراه دارد.",
+                    text = content,
                     textAlign = TextAlign.Center,
                     fontFamily = persian_font_regular,
                     fontSize = 16.sp,

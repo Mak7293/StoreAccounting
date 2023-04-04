@@ -17,9 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -28,9 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -231,7 +233,7 @@ fun Main(
             modifier = Modifier
                 .width(350.dp)
                 .height(175.dp)
-                .padding(all=5.dp),
+                .padding(all = 5.dp),
         )
     }
 
@@ -311,7 +313,7 @@ fun Main(
                     AddEditInventoryBottomSheetContent(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(440.dp)
+                            .height(460.dp)
                             .testTag(TestTag.INVENTORY_BOTTOM_SHEET)
                             .background(
                                 Brush.verticalGradient(
@@ -338,7 +340,7 @@ fun Main(
                     SaleBottomSheetContent(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(500.dp)
+                            .height(540.dp)
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
@@ -355,25 +357,24 @@ fun Main(
                                     topEnd = 35.dp
                                 ),
                             ),
-                        saleList = inventorySaleViewModel.state.value.inventory,
                         oldHistory = null
                     ){
                         scope.launch {
                             if(sheetState.isCollapsed) {
                                 sheetState.expand()
-
-                            } else {
+                            }else{
                                 sheetState.collapse()
                             }
                         }
                     }
+
                 }
                 FabRoute.EditSaleFab.route   ->   {
                     Log.d("history!!", editSaleHistory.toString())
                     SaleBottomSheetContent(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(500.dp)
+                            .height(540.dp)
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
@@ -390,7 +391,6 @@ fun Main(
                                     topEnd = 35.dp
                                 ),
                             ),
-                        saleList = inventorySaleViewModel.state.value.inventory,
                         oldHistory = editSaleHistory
                     ){
 
@@ -544,7 +544,7 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
 
                 }
             } else {
@@ -554,7 +554,7 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         0, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
                 }
             }
         }
@@ -568,7 +568,7 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         0, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
                 }
             } else {
                 val backgroundArgb = MaterialTheme.colors.onSurface.toArgb()
@@ -577,7 +577,7 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
                 }
             }
         }
@@ -591,7 +591,9 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         0, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
+
+
                 }
             } else {
                 val backgroundArgb = MaterialTheme.colors.onSurface.toArgb()
@@ -600,7 +602,8 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
+
                 }
             }
         }
@@ -614,7 +617,7 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         0, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
                 }
             } else {
                 val backgroundArgb = MaterialTheme.colors.background.toArgb()
@@ -623,7 +626,7 @@ fun SetStatusBarTheme(window : Window, currentFragment: String) {
                     window.insetsController?.setSystemBarsAppearance(
                         APPEARANCE_LIGHT_STATUS_BARS, APPEARANCE_LIGHT_STATUS_BARS)
                 }else{
-                    window.decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                    WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
                 }
             }
         }

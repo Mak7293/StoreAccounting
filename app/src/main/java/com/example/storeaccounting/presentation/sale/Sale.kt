@@ -3,10 +3,13 @@ package com.example.storeaccounting.presentation.sale
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -22,7 +25,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -35,7 +40,6 @@ import com.example.storeaccounting.core.TestTag.CLOSE_SALE_BOTTOM_SHEET
 import com.example.storeaccounting.core.TestTag.SALE_BOTTOM_SHEET
 import com.example.storeaccounting.core.TestTag.SALE_ITEM_BOTTOM_SHEET_LAZY_COLUMN
 import com.example.storeaccounting.core.TestTag.SALE_ITEM_LAZY_COLUMN
-import com.example.storeaccounting.core.TestTag.inventoryLazyTitle
 import com.example.storeaccounting.core.TestTag.saleLazyTitle
 import com.example.storeaccounting.core.TestTag.saleTitle
 import com.example.storeaccounting.domain.model.History
@@ -67,8 +71,8 @@ import com.patrykandpatrick.vico.compose.axis.axisLineComponent
 import com.patrykandpatrick.vico.compose.axis.horizontal.bottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.startAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
-import com.patrykandpatrick.vico.compose.chart.line.lineChart
-import com.patrykandpatrick.vico.compose.chart.line.lineSpec
+import com.patrykandpatrick.vico.compose.chart.column.columnChart
+import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.core.entry.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -199,10 +203,14 @@ fun Sale(
                     val chartEntryModelProducer1 = ChartEntryModelProducer(entriesOf(*a))
                     Chart(
                         chart =
-                            lineChart(
-                                lines = listOf(lineSpec(
-                                    lineColor = Color.Red
-                                ))
+                            columnChart(
+                                columns = listOf(
+                                    lineComponent(
+                                        color = Color.Red,
+                                        thickness = 3.dp,
+                                        shape = CircleShape
+                                    )
+                                )
                             )
                         ,
                         chartModelProducer = remember(key1 = graphList.value) {
@@ -253,7 +261,7 @@ fun Sale(
                         Button(
                             modifier = Modifier
                                 .width(180.dp)
-                                .height(35.dp),
+                                .height(40.dp),
                             onClick = {
                                 if(inventorySaleViewModel.filterState.value){
                                     inventorySaleViewModel.onEvent(InventorySaleEvent.FilterSaleHistory(null))
@@ -376,7 +384,6 @@ fun Sale(
         }
     }
 }
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SaleContent(
     modifier: Modifier = Modifier,
@@ -397,20 +404,14 @@ fun SaleContent(
         contentPadding = PaddingValues(10.dp),
     ){
         items(
-            count = saleHistoryList.size,
-            key = { it }
+            count = saleHistoryList.size
         ){
             SaleItem(
                 modifier = Modifier
-                    .animateItemPlacement(
-                        animationSpec = tween(
-                            durationMillis = 500
-                        )
-                    )
                     .semantics {
                         saleLazyTitle = saleHistoryList[it].title
                     }
-                    .testTag(saleHistoryList[it].title+"@"),
+                    .testTag(saleHistoryList[it].title + "@"),
                 item = saleHistoryList[it],
                 onDelete = {
                     deleteHistory = it
@@ -453,28 +454,36 @@ fun SaleContent(
 @Composable
 fun SaleBottomSheetContent(
     modifier: Modifier = Modifier,
-    inventorySaleViewModel: InventorySaleViewModel = hiltViewModel(),
-    saleList: List<InventoryEntity>,
+    viewModel: InventorySaleViewModel = hiltViewModel(),
     context: Context = LocalContext.current,
     oldHistory: History? = null,
     onCancel:() ->  Unit
 ){
+    val scrollState = rememberScrollState()
+    /////????//////
+    scrollState.isScrollInProgress
+    ////????//////
     Box(
         modifier = modifier
-            .testTag(SALE_BOTTOM_SHEET),
+            .testTag(SALE_BOTTOM_SHEET)
+            .scrollable(
+                state = scrollState,
+                orientation = Orientation.Vertical,
+            ),
         contentAlignment = Alignment.Center
     ){
         val currentDate = PersianDateFormat("Y/m/d")
-            .format(inventorySaleViewModel.getPersianDate()).toString()
+            .format(viewModel.getPersianDate()).toString()
         var number by remember {
             mutableStateOf("")
         }
         val inventoryEntity = remember {
             mutableStateOf<InventoryEntity?>(null)
         }
+        val saleList = viewModel.state.value.inventory
         LaunchedEffect(key1 = oldHistory){
             if (oldHistory!=null){
-                inventoryEntity.value = inventorySaleViewModel.getHistoryByInventory(oldHistory.createdTimeStamp).inventory
+                inventoryEntity.value = viewModel.getHistoryByInventory(oldHistory.createdTimeStamp).inventory
                 number = oldHistory.saleNumber
             }else{
                 inventoryEntity.value = null
@@ -482,7 +491,9 @@ fun SaleBottomSheetContent(
             }
         }
         Column (
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(rememberNestedScrollInteropConnection())
         ){
             RightToLeftLayout {
                 Text(
@@ -499,25 +510,42 @@ fun SaleBottomSheetContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
+                    .height(175.dp)
                     .testTag(SALE_ITEM_BOTTOM_SHEET_LAZY_COLUMN),
                 contentPadding = PaddingValues(10.dp),
             ){
                 items(
                     count = saleList.size,
-                    key = { it }
                 ){
                     SaleBottomSheetItem(
                         modifier = Modifier
-                            .animateItemPlacement(
-                                animationSpec = tween(
-                                    durationMillis = 500
-                                )
-                            )
                             .semantics {
                                 saleTitle = saleList[it].title
                             }
                             .testTag(saleList[it].title)
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = 15.dp,
+                                vertical = 5.dp
+                            )
+                            .background(
+                                brush = if (isSystemInDarkTheme()) {
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color(0xFFFF3D00),
+                                            Color(0xFFFFE500)
+                                        )
+                                    )
+                                } else {
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color(0xFF009C07),
+                                            Color(0xFF63FF6A)
+                                        )
+                                    )
+                                },
+                                shape = CircleShape
+                            )
                         ,
                         item = saleList[it],
                         isSelected = inventoryEntity.value?.createdTimeStamp == saleList[it].createdTimeStamp
@@ -641,13 +669,13 @@ fun SaleBottomSheetContent(
                                     date = newInventoryEntity.date
                                 )
                                 if(oldHistory == null){
-                                    inventorySaleViewModel.onEvent(
+                                    viewModel.onEvent(
                                         InventorySaleEvent.SaleInventory(
                                         inventoryEntity = newInventoryEntity,
                                         history = newHistory
                                     ))
                                 }else{
-                                    inventorySaleViewModel.onEvent(
+                                    viewModel.onEvent(
                                         InventorySaleEvent.UpdateSaleTransaction(
                                         inventoryEntity = newInventoryEntity,
                                         newHistory = newHistory,
@@ -687,8 +715,6 @@ fun SaleBottomSheetContent(
 fun SaleBottomSheetItem(
     modifier: Modifier = Modifier,
     item: InventoryEntity,
-    verticalPadding: Dp = 5.dp,
-    horizontalPadding: Dp = 15.dp,
     contentPadding: Dp = 10.dp,
     isSelected: Boolean = false,
     onSelect:(InventoryEntity) -> Unit
@@ -696,30 +722,8 @@ fun SaleBottomSheetItem(
     RightToLeftLayout {
         Row(
             modifier = modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = horizontalPadding,
-                    vertical = verticalPadding
-                )
-                .background(
-                    brush = if (isSystemInDarkTheme()) {
-                        Brush.horizontalGradient(
-                            listOf(
-                                Color(0xFFFF3D00),
-                                Color(0xFFFFE500)
-                            )
-                        )
-                    } else {
-                        Brush.horizontalGradient(
-                            listOf(
-                                Color(0xFF009C07),
-                                Color(0xFF63FF6A)
-                            )
-                        )
-                    },
-                    shape = CircleShape
-                )
                 .clickable {
+                    Log.d("Click","AA")
                     onSelect(item)
                 },
             verticalAlignment = Alignment.CenterVertically,
@@ -950,6 +954,7 @@ fun SaleItem(
     onDelete:(History) -> Unit,
     onEdit:(History)  ->  Unit
 ){
+    Log.d("recompose","@@@")
     RightToLeftLayout {
         Column(
             modifier = modifier

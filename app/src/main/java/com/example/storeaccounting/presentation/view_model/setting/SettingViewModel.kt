@@ -76,26 +76,30 @@ class SettingViewModel @Inject constructor(
         Toast.makeText(this,"فایل های بک آپ با موفقیت ذخیره شد:$sfPath ",Toast.LENGTH_LONG).show()
     }
     fun Application.restoreBackup(){
+        try{
+            val sDir = File("${Environment.getExternalStorageDirectory()}")
+            val fileName = "StoreStorageBackUp"
+            val sfPath = sDir.path + File.separator + fileName
+            if (!File(sfPath).exists()) {
+                Toast.makeText(this,"فایل بک آپ در مسیر مورد نظر پیدا نشد،" +
+                        " لطفا ابتدا اقدام به گرفتن بک آپ نمایید.",Toast.LENGTH_LONG).show()
+                return
+            }
+            val dbExternal = "$sfPath/${Database.DATABASE_NAME}"
+            val walExternal = "$sfPath/${Database.DATABASE_NAME}-wal"
+            val shmExternal = "$sfPath/${Database.DATABASE_NAME}-shm"
 
-        val sDir = File("${Environment.getExternalStorageDirectory()}")
-        val fileName = "StoreStorageBackUp"
-        val sfPath = sDir.path + File.separator + fileName
-        if (!File(sfPath).exists()) {
-            Toast.makeText(this,"فایل بک آپ در مسیر مورد نظر پیدا نشد،" +
-                    " لطفا ابتدا اقدام به گرفتن بک آپ نمایید.",Toast.LENGTH_LONG).show()
-            return
+            val db = getDatabasePath("${Database.DATABASE_NAME}").absolutePath
+            val wal = getDatabasePath("${Database.DATABASE_NAME}-wal").absolutePath
+            val shm = getDatabasePath("${Database.DATABASE_NAME}-shm").absolutePath
+            File(dbExternal).copyTo(File(db), true)
+            File(walExternal).copyTo(File(wal), true)
+            File(shmExternal).copyTo(File(shm), true)
+            triggerRebirth(MainActivity::class.java)
+        }catch (e: Exception){
+            Toast.makeText(applicationContext,"خطا در بازیابی فایل های بک آپ، لطفا دوبار اقدام به گرفتن بک آپ نمایید."
+                ,Toast.LENGTH_SHORT).show()
         }
-        val dbExternal = "$sfPath/${Database.DATABASE_NAME}"
-        val walExternal = "$sfPath/${Database.DATABASE_NAME}-wal"
-        val shmExternal = "$sfPath/${Database.DATABASE_NAME}-shm"
-
-        val db = getDatabasePath("${Database.DATABASE_NAME}").absolutePath
-        val wal = getDatabasePath("${Database.DATABASE_NAME}-wal").absolutePath
-        val shm = getDatabasePath("${Database.DATABASE_NAME}-shm").absolutePath
-        File(dbExternal).copyTo(File(db), true)
-        File(walExternal).copyTo(File(wal), true)
-        File(shmExternal).copyTo(File(shm), true)
-        triggerRebirth(MainActivity::class.java)
     }
     fun Application.triggerRebirth(myClass: Class<*>?) {
         val intent = Intent(this, myClass)
