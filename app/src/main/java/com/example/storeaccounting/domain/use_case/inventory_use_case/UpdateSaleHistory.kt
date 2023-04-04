@@ -19,7 +19,7 @@ class UpdateSaleHistory(private val repository: Repository) {
         }else if(checkNumberIsNotNegative(newHistory.saleNumber)){
             throw InvalidTransactionException("تعداد کالا نمیتواند منفی باشد.")
         }else if (checkNumberIsDigit(newHistory.saleNumber)){
-            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد. همچنین نباید شامل فاصله خالی باشد.")
+            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد.")
         }else if (newHistory.saleNumber.toLong() == 0L){
             throw InvalidTransactionException("تعداد کالا نمیتواند صفر باشد.")
         }else if (newHistory.remainingInventory < 0){

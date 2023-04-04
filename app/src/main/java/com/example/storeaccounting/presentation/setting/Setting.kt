@@ -11,6 +11,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -412,7 +413,7 @@ fun content(
                     .fillMaxWidth()
                     .padding(vertical = 5.dp, horizontal = 10.dp),
                 textAlign = TextAlign.Start,
-                text = "گرفتن بک آپ:",
+                text = "گرفتن بک آپ",
                 color = MaterialTheme.colors.onPrimary,
                 fontFamily = persian_font_regular,
                 fontSize = 18.sp
@@ -465,7 +466,7 @@ fun content(
                     .fillMaxWidth()
                     .padding(vertical = 5.dp, horizontal = 10.dp),
                 textAlign = TextAlign.Start,
-                text = "بارگزاری بک آپ:",
+                text = "بارگزاری بک آپ",
                 color = MaterialTheme.colors.onPrimary,
                 fontFamily = persian_font_regular,
                 fontSize = 18.sp

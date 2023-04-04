@@ -286,8 +286,8 @@ fun CreditCardItem(
                     height = 175.dp
                 )
                 .fillMaxWidth(),
-            smallFontSize = 14.sp,
-            bigFontSize = 18.sp,
+            smallFontSize = 12.sp,
+            bigFontSize = 16.sp,
             lightColor = creditCardLight ,
             mediumColor = creditCardMedium ,
             darkColor = creditCardDark,

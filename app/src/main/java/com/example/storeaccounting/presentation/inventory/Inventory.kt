@@ -113,6 +113,7 @@ fun InventoryContent(
                 showDeleteDialog.value = true
             },
             showEditBottomSheet = {
+
                 onData(it)
             },
             showHistoryCustomDialog = {
@@ -181,6 +182,9 @@ fun InventoryHistory(
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable {
+                               FakeEntries.fake(viewModel)
+                    }
                 ,
                 textAlign = TextAlign.Start,
                 text = "لیست کالا های فروشگاه:",

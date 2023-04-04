@@ -20,8 +20,8 @@ object FakeEntries {
                 number = (c.code * (5..10).random()).toString(),
                 timeStamp = System.currentTimeMillis() - ("${index * 86_400}000").toLong(),
                 createdTimeStamp = System.currentTimeMillis() - ("${index * 86_400}000").toLong(),
-                sellPrice = (c.code * (2000..3000).random()).toString(),
-                buyPrice = (c.code * (1000..2000).random()).toString()
+                sellPrice = (c.code * (20..30).random()).toString(),
+                buyPrice = (c.code * (10..20).random()).toString()
             )
             list.add(inventoryEntity)
         }
