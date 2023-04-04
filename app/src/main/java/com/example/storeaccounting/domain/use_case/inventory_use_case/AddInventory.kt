@@ -17,7 +17,7 @@ class AddInventory(private val repository: Repository) {
         }else if(checkNumberIsNotNegative(inventoryEntity.number)){
             throw InvalidTransactionException("تعداد کالا نمیتواند منفی باشد.")
         }else if (checkNumberIsDigit(inventoryEntity.number)){
-            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد.")
+            throw InvalidTransactionException("تعداد کالا تنها میتواند عدد باشد. همچنین نباید از فاصله خالی (white space) در این قسمت استفاده کرد.")
         }else if (inventoryEntity.number.toLong() == 0L){
             throw InvalidTransactionException("تعداد کالا نمیتواند صفر باشد.")
         }
@@ -26,7 +26,7 @@ class AddInventory(private val repository: Repository) {
         }else if(checkNumberIsNotNegative(inventoryEntity.buyPrice)){
             throw InvalidTransactionException("قیمت خرید کالا نمیتواند منفی باشد.")
         }else if (checkNumberIsDigit(inventoryEntity.buyPrice)){
-            throw InvalidTransactionException("قیمت خرید کالا تنها میتواند عدد باشد.")
+            throw InvalidTransactionException("قیمت خرید کالا تنها میتواند عدد باشد. همچنین نباید از فاصله خالی (white space) در این قسمت استفاده کرد.")
         }else if (inventoryEntity.buyPrice.toLong() == 0L){
             throw InvalidTransactionException("قیمت خرید کالا نمیتواند صفر باشد.")
         }
@@ -35,7 +35,7 @@ class AddInventory(private val repository: Repository) {
         }else if(checkNumberIsNotNegative(inventoryEntity.sellPrice)){
             throw InvalidTransactionException("قیمت فروش کالا نمیتواند منفی باشد.")
         }else if (checkNumberIsDigit(inventoryEntity.sellPrice)){
-            throw InvalidTransactionException("قیمت فروش کالا تنها میتواند عدد باشد.")
+            throw InvalidTransactionException("قیمت فروش کالا تنها میتواند عدد باشد. همچنین نباید از فاصله خالی (white space) در این قسمت استفاده کرد.")
         }else if (inventoryEntity.sellPrice.toLong() == 0L){
             throw InvalidTransactionException("قیمت فروش کالا نمیتواند صفر باشد.")
         }
