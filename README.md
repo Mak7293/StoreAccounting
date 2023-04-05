@@ -46,7 +46,7 @@ Minimum android version **SDK24+** or **Android 7.0+**.
 - This app is using Jetpack Compose, latest amazing approach in developing Ui of android application in order to design beautiful and effective Ui.
 - This app is using Mvvm Artichecture design pattern Along with Dagger Hilt android library for dependency Injection.
 - This app is using Room Database in order to persistent storage. inorder to design structure of database, one to many realations are used the most. one good
-can have multiple history like create,edit and sale but one history can belong to only one good. also this app for limited storage use datastore preferences.
+can have multiple history like create,edit and sale but one history can belong to only one good. also this app uses datastore preferences for limited storage.
 - This app is using Junit framework for some unit-test, integration-test and end to end test.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
