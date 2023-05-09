@@ -278,7 +278,6 @@ fun AddEditInventoryBottomSheetContent(
 ) {
     val currentDate = PersianDateFormat("Y/m/d")
         .format(inventorySaleViewModel.getPersianDate()).toString()
-
     var title by remember {
         mutableStateOf("")
     }
@@ -292,10 +291,7 @@ fun AddEditInventoryBottomSheetContent(
         mutableStateOf("")
     }
     LaunchedEffect(
-        inventory?.title,
-        inventory?.number,
-        inventory?.buyPrice,
-        inventory?.sellPrice
+        inventory,
     ){
         if(title != inventory?.title ){
             title = inventory?.title ?: ""
@@ -419,10 +415,12 @@ fun AddEditInventoryBottomSheetContent(
                         .testTag(CLOSE_INVENTORY_BOTTOM_SHEET),
                     onClick = {
                         onDismiss()
-                        title = ""
-                        number = ""
-                        buyPrice = ""
-                        sellPrice = ""
+                        if(inventory == null){
+                            title = ""
+                            number = ""
+                            buyPrice = ""
+                            sellPrice = ""
+                        }
                     },
                     shape = RoundedCornerShape(100),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF013A63))

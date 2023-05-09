@@ -338,7 +338,7 @@ fun CreateHistoryItem(
                         color = Color.Black
                     )
                     Text(
-                        text ="حاشیه سود کالا: ${item.sellPrice}",
+                        text ="حاشیه سود کالا: ${item.sellPrice.toLong()-item.buyPrice.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Black
@@ -440,7 +440,7 @@ fun EditHistoryItem(
                         color = Color(0xFF006D04)
                     )
                     Text(
-                        text ="حاشیه سود کالا: ${item.sellPrice}",
+                        text ="حاشیه سود کالا: ${item.sellPrice.toLong()-item.buyPrice.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color(0xFF006D04)
@@ -483,13 +483,12 @@ fun EditHistoryItem(
                         color = Color.Red
                     )
                     Text(
-                        text ="حاشیه سود کالا: ${_item.sellPrice}",
+                        text ="حاشیه سود کالا: ${_item.sellPrice.toLong()-_item.buyPrice.toLong()}",
                         fontFamily = persian_font_semi_bold,
                         fontSize = 14.sp,
                         color = Color.Red
                     )
                 }
-
             }
             Divider(
                 modifier = Modifier
